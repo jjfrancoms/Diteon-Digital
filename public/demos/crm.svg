@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <linearGradient id="crmBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181836"/>
+      <stop offset="100%" stop-color="#121226"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="620" rx="10" fill="url(#crmBg)" stroke="#2D2D54" stroke-width="1.5"/>
+
+  <!-- Top App Navigation / Toolbar -->
+  <rect width="1000" height="50" rx="10" fill="#14142B"/>
+  <rect y="40" width="1000" height="10" fill="#14142B"/>
+  <line x1="0" y1="50" x2="1000" y2="50" stroke="#2D2D54" stroke-width="1"/>
+
+  <!-- Breadcrumbs & Status -->
+  <text x="24" y="32" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700">DITEON CRM</text>
+  <text x="125" y="32" fill="#64748B" font-family="system-ui, sans-serif" font-size="13">/ Pipeline Comercial</text>
+  
+  <rect x="740" y="12" width="110" height="26" rx="5" fill="#24244E" stroke="#3D3D70" stroke-width="1"/>
+  <text x="755" y="29" fill="#E2E8F0" font-family="system-ui, sans-serif" font-size="11">Filtro: Este Mes ▾</text>
+
+  <rect x="865" y="12" width="115" height="26" rx="5" fill="#1C6FE0"/>
+  <text x="880" y="29" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="11" font-weight="600">+ Nuevo Trato</text>
+
+  <!-- Summary Stats Bar -->
+  <rect x="24" y="66" width="952" height="52" rx="8" fill="#1B1B38" stroke="#2D2D54" stroke-width="1"/>
+  
+  <text x="44" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">PIPELINE ACTIVO</text>
+  <text x="44" y="106" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">S/ 128,400</text>
+
+  <line x1="220" y1="76" x2="220" y2="108" stroke="#2D2D54" stroke-width="1"/>
+  
+  <text x="244" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">TRATOS EN CURSO</text>
+  <text x="244" y="106" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">24 prospectos</text>
+
+  <line x1="440" y1="76" x2="440" y2="108" stroke="#2D2D54" stroke-width="1"/>
+
+  <text x="464" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">TASA DE CIERRE</text>
+  <text x="464" y="106" fill="#34D399" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">32.8% (+4.1%)</text>
+
+  <line x1="660" y1="76" x2="660" y2="108" stroke="#2D2D54" stroke-width="1"/>
+
+  <text x="684" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">TIEMPO MEDIO DE CIERRE</text>
+  <text x="684" y="106" fill="#FBBF24" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700">8.4 días</text>
+
+  <!-- KANBAN BOARD (4 Columns) -->
+  <!-- Col 1: Prospecto Nuevo -->
+  <rect x="24" y="134" width="224" height="466" rx="8" fill="#14142B" stroke="#26264A" stroke-width="1"/>
+  <rect x="24" y="134" width="224" height="34" rx="8" fill="#181834"/>
+  <text x="38" y="156" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">1. Nuevos Leads (5)</text>
+  <text x="186" y="156" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">S/ 24k</text>
+
+  <!-- Card 1.1 -->
+  <rect x="34" y="178" width="204" height="96" rx="6" fill="#1C1C3A" stroke="#2D2D54" stroke-width="1"/>
+  <text x="44" y="198" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Constructora San Martín</text>
+  <text x="44" y="214" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Cotización ERP + Almacén</text>
+  <rect x="44" y="244" width="60" height="18" rx="4" fill="#10B981" fill-opacity="0.15"/>
+  <text x="50" y="256" fill="#34D399" font-family="system-ui, sans-serif" font-size="9" font-weight="700">WhatsApp</text>
+  <text x="160" y="258" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">S/ 8,500</text>
+
+  <!-- Card 1.2 -->
+  <rect x="34" y="284" width="204" height="96" rx="6" fill="#1C1C3A" stroke="#2D2D54" stroke-width="1"/>
+  <text x="44" y="304" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Distribuidora Andina</text>
+  <text x="44" y="320" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Punto de Venta 4 Cajas</text>
+  <rect x="44" y="350" width="50" height="18" rx="4" fill="#1C6FE0" fill-opacity="0.15"/>
+  <text x="50" y="362" fill="#60A5FA" font-family="system-ui, sans-serif" font-size="9" font-weight="700">Web</text>
+  <text x="160" y="364" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">S/ 4,200</text>
+
+  <!-- Col 2: Calificación & Demo -->
+  <rect x="264" y="134" width="224" height="466" rx="8" fill="#14142B" stroke="#26264A" stroke-width="1"/>
+  <rect x="264" y="134" width="224" height="34" rx="8" fill="#181834"/>
+  <text x="278" y="156" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">2. Demostración (3)</text>
+  <text x="426" y="156" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">S/ 36k</text>
+
+  <!-- Card 2.1 -->
+  <rect x="274" y="178" width="204" height="110" rx="6" fill="#1C1C3A" stroke="#1C6FE0" stroke-width="1.5"/>
+  <text x="284" y="198" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Cadena FarmaSalud</text>
+  <text x="284" y="214" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Control Lotes y Vencimientos</text>
+  <rect x="284" y="226" width="184" height="20" rx="4" fill="#10B981" fill-opacity="0.1"/>
+  <text x="290" y="240" fill="#34D399" font-family="system-ui, sans-serif" font-size="9">Reunión agendada: Mañana 10am</text>
+  <text x="400" y="272" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">S/ 16,800</text>
+
+  <!-- Col 3: Propuesta Enviada -->
+  <rect x="504" y="134" width="224" height="466" rx="8" fill="#14142B" stroke="#26264A" stroke-width="1"/>
+  <rect x="504" y="134" width="224" height="34" rx="8" fill="#181834"/>
+  <text x="518" y="156" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">3. Propuesta (4)</text>
+  <text x="666" y="156" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">S/ 48k</text>
+
+  <!-- Card 3.1 -->
+  <rect x="514" y="178" width="204" height="96" rx="6" fill="#1C1C3A" stroke="#2D2D54" stroke-width="1"/>
+  <text x="524" y="198" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Importadora del Sur</text>
+  <text x="524" y="214" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Portal B2B + Facturación</text>
+  <rect x="524" y="244" width="70" height="18" rx="4" fill="#F59E0B" fill-opacity="0.15"/>
+  <text x="530" y="256" fill="#FBBF24" font-family="system-ui, sans-serif" font-size="9" font-weight="700">Revisión Legal</text>
+  <text x="640" y="258" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">S/ 22,000</text>
+
+  <!-- Col 4: Ganado / En Cierre -->
+  <rect x="744" y="134" width="232" height="466" rx="8" fill="#14142B" stroke="#26264A" stroke-width="1"/>
+  <rect x="744" y="134" width="232" height="34" rx="8" fill="#181834"/>
+  <text x="758" y="156" fill="#34D399" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">4. Cerrado Ganado (6)</text>
+  <text x="906" y="156" fill="#34D399" font-family="system-ui, sans-serif" font-size="11">S/ 58k</text>
+
+  <!-- Card 4.1 -->
+  <rect x="754" y="178" width="212" height="96" rx="6" fill="#132E22" stroke="#10B981" stroke-width="1"/>
+  <text x="764" y="198" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Grupo Logístico Lima</text>
+  <text x="764" y="214" fill="#A7F3D0" font-family="system-ui, sans-serif" font-size="10">App Choferes + Tracking</text>
+  <rect x="764" y="244" width="80" height="18" rx="4" fill="#10B981" fill-opacity="0.25"/>
+  <text x="770" y="256" fill="#6EE7B7" font-family="system-ui, sans-serif" font-size="9" font-weight="700">✓ Contrato Firmado</text>
+  <text x="890" y="258" fill="#34D399" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">S/ 19,500</text>
+</svg>

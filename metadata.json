@@ -1,0 +1,7 @@
+{
+  "name": "DITEON Digital",
+  "description": "Software a medida, automatizaciones y dashboards para hacer funcionar mejor tu negocio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

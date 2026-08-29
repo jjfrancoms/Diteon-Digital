@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <linearGradient id="customBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181836"/>
+      <stop offset="100%" stop-color="#101024"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="620" rx="10" fill="url(#customBg)" stroke="#2D2D54" stroke-width="1.5"/>
+
+  <!-- Top Bar -->
+  <rect width="1000" height="50" rx="10" fill="#14142B"/>
+  <rect y="40" width="1000" height="10" fill="#14142B"/>
+  <line x1="0" y1="50" x2="1000" y2="50" stroke="#2D2D54" stroke-width="1"/>
+
+  <text x="24" y="32" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700">PORTAL OPERATIVO DEDICADO</text>
+  <text x="270" y="32" fill="#64748B" font-family="system-ui, sans-serif" font-size="13">/ Gestión de Servicios Técnicos en Campo</text>
+
+  <rect x="740" y="12" width="110" height="26" rx="5" fill="#1C6FE0" fill-opacity="0.2"/>
+  <text x="752" y="29" fill="#60A5FA" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Rol: Administrador</text>
+
+  <rect x="865" y="12" width="115" height="26" rx="5" fill="#1C6FE0"/>
+  <text x="878" y="29" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="11" font-weight="600">+ Asignar Técnico</text>
+
+  <!-- Left: Service Tickets & Field Agents (540) -->
+  <rect x="24" y="66" width="540" height="530" rx="8" fill="#141428" stroke="#2D2D54" stroke-width="1"/>
+  
+  <text x="44" y="98" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700">Servicios Técnicos Asignados Hoy</text>
+  <text x="44" y="116" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">Rutas optimizadas y reportes de firma digital en campo</text>
+
+  <!-- Ticket 1 -->
+  <rect x="44" y="136" width="500" height="100" rx="8" fill="#1B1B3A" stroke="#1C6FE0" stroke-width="1.5"/>
+  <text x="60" y="162" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="700">Mantenimiento Preventivo Chiller #04</text>
+  <text x="60" y="180" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">Cliente: Corporación Textil del Centro</text>
+  
+  <rect x="60" y="196" width="120" height="22" rx="4" fill="#10B981" fill-opacity="0.15"/>
+  <text x="70" y="211" fill="#34D399" font-family="system-ui, sans-serif" font-size="10" font-weight="700">✓ En Sitio · 85% Avance</text>
+
+  <text x="380" y="162" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Téc: R. Valdivia</text>
+  <text x="380" y="180" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">GPS: Av. Argentina 1420</text>
+
+  <!-- Ticket 2 -->
+  <rect x="44" y="248" width="500" height="100" rx="8" fill="#1B1B3A" stroke="#2D2D54" stroke-width="1"/>
+  <text x="60" y="274" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="700">Calibración de Sensores Térmicos</text>
+  <text x="60" y="292" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">Cliente: Laboratorios BioFarma</text>
+  
+  <rect x="60" y="308" width="105" height="22" rx="4" fill="#F59E0B" fill-opacity="0.15"/>
+  <text x="70" y="323" fill="#FBBF24" font-family="system-ui, sans-serif" font-size="10" font-weight="700">⏳ En Traslado (ETA 15m)</text>
+
+  <text x="380" y="274" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Téc: C. Paredes</text>
+  <text x="380" y="292" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">GPS: San Isidro</text>
+
+  <!-- Right: Digital Signature & Report Verification (390) -->
+  <rect x="580" y="66" width="396" height="530" rx="8" fill="#141428" stroke="#2D2D54" stroke-width="1"/>
+  
+  <text x="600" y="98" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700">Informe Digital &amp; Conformidad</text>
+  <text x="600" y="116" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">Firma en pantalla del cliente y fotos adjuntas</text>
+
+  <rect x="600" y="136" width="356" height="150" rx="8" fill="#1B1B3A" stroke="#2D2D54" stroke-width="1"/>
+  <text x="616" y="160" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">EVIDENCIA FOTOGRÁFICA (3 FOTOS)</text>
+  
+  <rect x="616" y="174" width="70" height="50" rx="4" fill="#24244E"/>
+  <text x="636" y="204" fill="#60A5FA" font-size="18">📷</text>
+
+  <rect x="696" y="174" width="70" height="50" rx="4" fill="#24244E"/>
+  <text x="716" y="204" fill="#60A5FA" font-size="18">📷</text>
+
+  <rect x="776" y="174" width="70" height="50" rx="4" fill="#24244E"/>
+  <text x="796" y="204" fill="#60A5FA" font-size="18">📷</text>
+
+  <text x="616" y="244" fill="#10B981" font-family="system-ui, sans-serif" font-size="10" font-weight="600">✓ Fotos geolocalizadas con marca de agua y fecha</text>
+
+  <!-- Digital Signature Box -->
+  <rect x="600" y="300" width="356" height="160" rx="8" fill="#101024" stroke="#2D2D54" stroke-width="1"/>
+  <text x="616" y="324" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">FIRMA DIGITAL DEL CLIENTE</text>
+  
+  <!-- Signature Path Simulation -->
+  <path d="M 640 375 Q 670 350, 710 380 T 760 340 T 820 385 T 890 355" fill="none" stroke="#1C6FE0" stroke-width="2.5"/>
+  <text x="640" y="415" fill="#E2E8F0" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="600">Ing. Gonzalo Morales - Jefe de Mantenimiento</text>
+  <text x="640" y="430" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">DNI: 42891024 · Firmado: 14:15:30</text>
+
+  <rect x="600" y="475" width="356" height="42" rx="6" fill="#1C6FE0"/>
+  <text x="700" y="501" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Generar Acta PDF y Enviar</text>
+</svg>

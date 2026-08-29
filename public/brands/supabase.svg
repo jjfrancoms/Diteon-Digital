@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+  <!-- Official Supabase Vector Identity Mark -->
+  <path d="M13.4 2.1c-.6-.7-1.7-.3-1.7.6v8.4H3.8c-.8 0-1.3.9-.8 1.6l8.8 11.2c.6.7 1.7.3 1.7-.6v-8.4h7.9c.8 0 1.3-.9.8-1.6L13.4 2.1z" fill="url(#supabase_brand_svg_grad)"/>
+  <defs>
+    <linearGradient id="supabase_brand_svg_grad" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#249361"/>
+      <stop offset="1" stop-color="#3ECF8E"/>
+    </linearGradient>
+  </defs>
+</svg>

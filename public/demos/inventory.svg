@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <linearGradient id="invBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181836"/>
+      <stop offset="100%" stop-color="#101024"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="620" rx="10" fill="url(#invBg)" stroke="#2D2D54" stroke-width="1.5"/>
+
+  <!-- Top Bar -->
+  <rect width="1000" height="50" rx="10" fill="#14142B"/>
+  <rect y="40" width="1000" height="10" fill="#14142B"/>
+  <line x1="0" y1="50" x2="1000" y2="50" stroke="#2D2D54" stroke-width="1"/>
+
+  <text x="24" y="32" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700">DITEON STOCK &amp; ALMACENES</text>
+  <text x="260" y="32" fill="#64748B" font-family="system-ui, sans-serif" font-size="13">/ Control Multisede en Tiempo Real</text>
+
+  <rect x="740" y="12" width="110" height="26" rx="5" fill="#24244E" stroke="#3D3D70" stroke-width="1"/>
+  <text x="755" y="29" fill="#E2E8F0" font-family="system-ui, sans-serif" font-size="11">Sedes: Todas ▾</text>
+
+  <rect x="865" y="12" width="115" height="26" rx="5" fill="#1C6FE0"/>
+  <text x="878" y="29" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="11" font-weight="600">+ Entrada / Salida</text>
+
+  <!-- Filter & Search Bar -->
+  <rect x="24" y="66" width="952" height="46" rx="8" fill="#14142B" stroke="#2D2D54" stroke-width="1"/>
+  <text x="44" y="94" fill="#64748B" font-family="system-ui, sans-serif" font-size="13">🔍 Buscar por SKU, código de barras o lote...</text>
+
+  <rect x="680" y="76" width="130" height="26" rx="5" fill="#EF4444" fill-opacity="0.15"/>
+  <text x="695" y="93" fill="#F87171" font-family="system-ui, sans-serif" font-size="11" font-weight="600">⚠ 3 Stock Bajo</text>
+
+  <rect x="825" y="76" width="135" height="26" rx="5" fill="#10B981" fill-opacity="0.15"/>
+  <text x="840" y="93" fill="#34D399" font-family="system-ui, sans-serif" font-size="11" font-weight="600">✓ 842 SKU Óptimos</text>
+
+  <!-- Inventory Table -->
+  <rect x="24" y="124" width="952" height="474" rx="8" fill="#141428" stroke="#2D2D54" stroke-width="1"/>
+  
+  <!-- Table Header -->
+  <rect x="24" y="124" width="952" height="38" rx="8" fill="#1B1B3A"/>
+  <text x="44" y="148" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">SKU / CÓDIGO</text>
+  <text x="180" y="148" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">PRODUCTO / DESCRIPCIÓN</text>
+  <text x="440" y="148" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">ALMACÉN CENTRAL</text>
+  <text x="600" y="148" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">TIENDA MIRAFLORES</text>
+  <text x="760" y="148" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">TOTAL STOCK</text>
+  <text x="890" y="148" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">ESTADO</text>
+
+  <!-- Row 1 -->
+  <line x1="24" y1="210" x2="976" y2="210" stroke="#222244" stroke-width="1"/>
+  <text x="44" y="186" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">SKU-8921-A</text>
+  <text x="44" y="200" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">EAN: 775012389</text>
+  
+  <text x="180" y="186" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Válvula Hidráulica 2 Pulgadas</text>
+  <text x="180" y="200" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Cat: Industrial / Acero Inox</text>
+
+  <text x="440" y="190" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13">140 un.</text>
+  <text x="600" y="190" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13">28 un.</text>
+  <text x="760" y="190" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="14" font-weight="700">168 un.</text>
+
+  <rect x="886" y="174" width="76" height="24" rx="4" fill="#10B981" fill-opacity="0.15"/>
+  <text x="900" y="190" fill="#34D399" font-family="system-ui, sans-serif" font-size="11" font-weight="700">Óptimo</text>
+
+  <!-- Row 2: Low Stock Critical Alert -->
+  <line x1="24" y1="270" x2="976" y2="270" stroke="#222244" stroke-width="1"/>
+  <rect x="25" y="211" width="950" height="58" fill="#EF4444" fill-opacity="0.06"/>
+  <text x="44" y="246" fill="#F87171" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">SKU-3104-X</text>
+  <text x="44" y="260" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">EAN: 775098231</text>
+
+  <text x="180" y="246" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Empaque de Silicón Térmico</text>
+  <text x="180" y="260" fill="#F87171" font-family="system-ui, sans-serif" font-size="10">Mínimo requerido: 50 un.</text>
+
+  <text x="440" y="250" fill="#F87171" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="700">4 un.</text>
+  <text x="600" y="250" fill="#F87171" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="700">1 un.</text>
+  <text x="760" y="250" fill="#F87171" font-family="'Space Grotesk', system-ui, sans-serif" font-size="14" font-weight="800">5 un.</text>
+
+  <rect x="886" y="234" width="76" height="24" rx="4" fill="#EF4444" fill-opacity="0.25"/>
+  <text x="896" y="250" fill="#FCA5A5" font-family="system-ui, sans-serif" font-size="11" font-weight="700">Reponer</text>
+
+  <!-- Row 3 -->
+  <line x1="24" y1="330" x2="976" y2="330" stroke="#222244" stroke-width="1"/>
+  <text x="44" y="306" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">SKU-7712-C</text>
+  <text x="44" y="320" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">EAN: 775044129</text>
+
+  <text x="180" y="306" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Bomba de Presión 1/2 HP</text>
+  <text x="180" y="320" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Cat: Maquinaria</text>
+
+  <text x="440" y="310" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13">32 un.</text>
+  <text x="600" y="310" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13">8 un.</text>
+  <text x="760" y="310" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="14" font-weight="700">40 un.</text>
+
+  <rect x="886" y="294" width="76" height="24" rx="4" fill="#10B981" fill-opacity="0.15"/>
+  <text x="900" y="310" fill="#34D399" font-family="system-ui, sans-serif" font-size="11" font-weight="700">Óptimo</text>
+
+  <!-- Row 4 -->
+  <line x1="24" y1="390" x2="976" y2="390" stroke="#222244" stroke-width="1"/>
+  <text x="44" y="366" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="12" font-weight="700">SKU-9901-D</text>
+  <text x="44" y="380" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">EAN: 775088219</text>
+
+  <text x="180" y="366" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Sensor de Temperatura Digital</text>
+  <text x="180" y="380" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Cat: Electrónica</text>
+
+  <text x="440" y="370" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13">84 un.</text>
+  <text x="600" y="370" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13">15 un.</text>
+  <text x="760" y="370" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="14" font-weight="700">99 un.</text>
+
+  <rect x="886" y="354" width="76" height="24" rx="4" fill="#10B981" fill-opacity="0.15"/>
+  <text x="900" y="370" fill="#34D399" font-family="system-ui, sans-serif" font-size="11" font-weight="700">Óptimo</text>
+</svg>

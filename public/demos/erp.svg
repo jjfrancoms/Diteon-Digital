@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <linearGradient id="erpBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181836"/>
+      <stop offset="100%" stop-color="#101024"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="620" rx="10" fill="url(#erpBg)" stroke="#2D2D54" stroke-width="1.5"/>
+
+  <!-- Top Bar -->
+  <rect width="1000" height="50" rx="10" fill="#14142B"/>
+  <rect y="40" width="1000" height="10" fill="#14142B"/>
+  <line x1="0" y1="50" x2="1000" y2="50" stroke="#2D2D54" stroke-width="1"/>
+
+  <text x="24" y="32" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700">DITEON ERP</text>
+  <text x="125" y="32" fill="#64748B" font-family="system-ui, sans-serif" font-size="13">/ Órdenes de Producción &amp; Proveedores</text>
+
+  <rect x="740" y="12" width="110" height="26" rx="5" fill="#24244E" stroke="#3D3D70" stroke-width="1"/>
+  <text x="755" y="29" fill="#E2E8F0" font-family="system-ui, sans-serif" font-size="11">Planta Central ▾</text>
+
+  <rect x="865" y="12" width="115" height="26" rx="5" fill="#1C6FE0"/>
+  <text x="878" y="29" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="11" font-weight="600">+ Crear Orden</text>
+
+  <!-- Metric Badges Row -->
+  <rect x="24" y="66" width="304" height="60" rx="8" fill="#1B1B38" stroke="#2D2D54" stroke-width="1"/>
+  <text x="40" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">PRODUCCIÓN ACTIVA</text>
+  <text x="40" y="112" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="18" font-weight="700">12 Lotes en Proceso</text>
+
+  <rect x="348" y="66" width="304" height="60" rx="8" fill="#1B1B38" stroke="#2D2D54" stroke-width="1"/>
+  <text x="364" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">CUMPLIMIENTO DE ENTREGAS</text>
+  <text x="364" y="112" fill="#34D399" font-family="'Space Grotesk', system-ui, sans-serif" font-size="18" font-weight="700">98.4% On-Time</text>
+
+  <rect x="672" y="66" width="304" height="60" rx="8" fill="#1B1B38" stroke="#2D2D54" stroke-width="1"/>
+  <text x="688" y="88" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">ÓRDENES DE COMPRA PENDIENTES</text>
+  <text x="688" y="112" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="18" font-weight="700">S/ 64,800</text>
+
+  <!-- Production Orders Table -->
+  <rect x="24" y="140" width="952" height="456" rx="8" fill="#141428" stroke="#2D2D54" stroke-width="1"/>
+  
+  <rect x="24" y="140" width="952" height="38" rx="8" fill="#1B1B3A"/>
+  <text x="44" y="164" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">N° ORDEN / LOTE</text>
+  <text x="200" y="164" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">PRODUCTO / META</text>
+  <text x="440" y="164" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">PROGRESO OPERATIVO</text>
+  <text x="680" y="164" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">RESPONSABLE</text>
+  <text x="860" y="164" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11" font-weight="600">ESTADO</text>
+
+  <!-- Row 1 -->
+  <line x1="24" y1="230" x2="976" y2="230" stroke="#222244" stroke-width="1"/>
+  <text x="44" y="196" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="700">OP-2026-089</text>
+  <text x="44" y="212" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">Inicio: Hoy 07:30 am</text>
+
+  <text x="200" y="196" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Ensamblaje Paneles Solares 450W</text>
+  <text x="200" y="212" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Meta: 500 unidades</text>
+
+  <!-- Progress Bar -->
+  <rect x="440" y="190" width="180" height="8" rx="4" fill="#24244E"/>
+  <rect x="440" y="190" width="144" height="8" rx="4" fill="#1C6FE0"/>
+  <text x="440" y="214" fill="#60A5FA" font-family="system-ui, sans-serif" font-size="11" font-weight="600">80% completado (400/500)</text>
+
+  <text x="680" y="196" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="12">Ing. M. Benavides</text>
+  <text x="680" y="212" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">Turno Mañana</text>
+
+  <rect x="850" y="184" width="105" height="24" rx="4" fill="#1C6FE0" fill-opacity="0.2"/>
+  <text x="864" y="200" fill="#60A5FA" font-family="system-ui, sans-serif" font-size="11" font-weight="700">En Ensamble</text>
+
+  <!-- Row 2 -->
+  <line x1="24" y1="300" x2="976" y2="300" stroke="#222244" stroke-width="1"/>
+  <text x="44" y="266" fill="#60A5FA" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="700">OP-2026-088</text>
+  <text x="44" y="282" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">Inicio: Ayer 14:00 pm</text>
+
+  <text x="200" y="266" fill="#FFFFFF" font-family="'Space Grotesk', system-ui, sans-serif" font-size="13" font-weight="600">Estructuras Metálicas de Soporte</text>
+  <text x="200" y="282" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="10">Meta: 1,200 piezas</text>
+
+  <rect x="440" y="260" width="180" height="8" rx="4" fill="#24244E"/>
+  <rect x="440" y="260" width="180" height="8" rx="4" fill="#10B981"/>
+  <text x="440" y="284" fill="#34D399" font-family="system-ui, sans-serif" font-size="11" font-weight="600">100% Finalizado · Control Calidad</text>
+
+  <text x="680" y="266" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="12">Supervisor R. Quispe</text>
+  <text x="680" y="282" fill="#64748B" font-family="system-ui, sans-serif" font-size="10">Línea de Corte</text>
+
+  <rect x="850" y="254" width="105" height="24" rx="4" fill="#10B981" fill-opacity="0.2"/>
+  <text x="868" y="270" fill="#34D399" font-family="system-ui, sans-serif" font-size="11" font-weight="700">Completado</text>
+</svg>
