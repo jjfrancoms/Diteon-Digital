@@ -9,9 +9,11 @@ declare global {
           sitekey: string;
           callback?: (token: string) => void;
           'expired-callback'?: () => void;
-          'error-callback'?: (errorCode: string) => void;
+          'error-callback'?: (errorCode: string) => boolean | void;
           theme?: 'light' | 'dark' | 'auto';
           size?: 'normal' | 'compact' | 'flexible';
+          retry?: 'auto' | 'never';
+          'retry-interval'?: number;
           [key: string]: any;
         }
       ) => string;
@@ -42,6 +44,23 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
 
+    // Keep callback refs stable across re-renders to prevent widget re-mounting on parent state changes
+    const onVerifyRef = useRef(onVerify);
+    const onExpireRef = useRef(onExpire);
+    const onErrorRef = useRef(onError);
+
+    useEffect(() => {
+      onVerifyRef.current = onVerify;
+    }, [onVerify]);
+
+    useEffect(() => {
+      onExpireRef.current = onExpire;
+    }, [onExpire]);
+
+    useEffect(() => {
+      onErrorRef.current = onError;
+    }, [onError]);
+
     // Expose reset method to parent component
     useImperativeHandle(ref, () => ({
       reset: () => {
@@ -49,7 +68,9 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           try {
             window.turnstile.reset(widgetIdRef.current);
           } catch (e) {
-            console.error('[Turnstile Reset Error]', e);
+            if (import.meta.env.DEV) {
+              console.error('[Turnstile Reset Error]', e);
+            }
           }
         }
       }
@@ -66,7 +87,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
       const renderWidget = () => {
         if (!isMounted || !containerRef.current || !window.turnstile) return;
 
-        // Clear any previous widget if existing
+        // Clear any previous widget only when recreating for new siteKey/theme
         if (widgetIdRef.current) {
           try {
             window.turnstile.remove(widgetIdRef.current);
@@ -80,20 +101,34 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           const id = window.turnstile.render(containerRef.current, {
             sitekey: activeSiteKey,
             theme,
+            retry: 'auto',
+            'retry-interval': 8000,
             callback: (token: string) => {
-              if (isMounted) onVerify(token);
+              if (isMounted) {
+                onVerifyRef.current(token);
+              }
             },
             'expired-callback': () => {
-              if (isMounted) onExpire?.();
+              if (isMounted) {
+                onExpireRef.current?.();
+              }
             },
             'error-callback': (errorCode: string) => {
-              if (isMounted) onError?.(errorCode);
+              if (import.meta.env.DEV) {
+                console.warn('[Turnstile Widget Error Callback]', errorCode);
+              }
+              if (isMounted) {
+                onErrorRef.current?.(errorCode);
+              }
+              return true;
             }
           });
           widgetIdRef.current = id;
         } catch (err) {
-          console.error('[Turnstile Render Error]', err);
-          onError?.('RENDER_FAILED');
+          if (import.meta.env.DEV) {
+            console.error('[Turnstile Render Error]', err);
+          }
+          onErrorRef.current?.('RENDER_FAILED');
         }
       };
 
@@ -121,7 +156,9 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           renderWidget();
         };
         script.onerror = () => {
-          if (isMounted) onError?.('SCRIPT_LOAD_ERROR');
+          if (isMounted) {
+            onErrorRef.current?.('SCRIPT_LOAD_ERROR');
+          }
         };
         document.head.appendChild(script);
       }
@@ -137,14 +174,14 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           widgetIdRef.current = null;
         }
       };
-    }, [siteKey, theme, onVerify, onExpire, onError]);
+    }, [siteKey, theme]);
 
     if (!siteKey?.trim()) {
       return null;
     }
 
     return (
-      <div className={`turnstile-container flex justify-start my-2 ${className}`}>
+      <div className={`turnstile-container flex justify-start my-2 min-h-[65px] ${className}`}>
         <div ref={containerRef} />
       </div>
     );

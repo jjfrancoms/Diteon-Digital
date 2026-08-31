@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { submitContactLead } from '../services/contactService';
 import { trackEvent } from '../services/analytics';
 import { contactConfig } from '../config/contact';
@@ -47,6 +47,29 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   const [errors, setErrors] = useState<FormErrors>({});
 
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() || '';
+
+  // Stable callbacks for Turnstile widget to prevent unnecessary re-renders or widget reconstruction
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+    setTurnstileError('');
+    setErrors((prev) => ({
+      ...prev,
+      turnstile: undefined,
+    }));
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+    setTurnstileError('La verificación expiró. Inténtalo nuevamente.');
+  }, []);
+
+  const handleTurnstileError = useCallback((errorCode?: string) => {
+    setTurnstileToken('');
+    setTurnstileError('No pudimos completar la verificación de seguridad. Inténtalo nuevamente.');
+    if (import.meta.env.DEV) {
+      console.warn('[Turnstile]', errorCode);
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -320,19 +343,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                 <TurnstileWidget
                   ref={turnstileRef}
                   siteKey={turnstileSiteKey}
-                  onVerify={(token) => {
-                    setTurnstileToken(token);
-                    setTurnstileError('');
-                    if (errors.turnstile) {
-                      setErrors((prev) => ({ ...prev, turnstile: undefined }));
-                    }
-                  }}
-                  onExpire={() => {
-                    setTurnstileToken('');
-                  }}
-                  onError={() => {
-                    setTurnstileToken('');
-                  }}
+                  onVerify={handleTurnstileVerify}
+                  onExpire={handleTurnstileExpire}
+                  onError={handleTurnstileError}
                 />
                 {(turnstileError || errors.turnstile) && (
                   <p className="text-xs text-[#FF6B35] font-medium flex items-center gap-1.5 pt-1">
