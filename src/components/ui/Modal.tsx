@@ -5,6 +5,7 @@ export interface ModalProps {
   onClose: () => void;
   title?: string;
   subtitle?: string;
+  headerIcon?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
@@ -15,6 +16,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   subtitle,
+  headerIcon,
   children,
   maxWidth = 'md',
   className = '',
@@ -71,21 +73,21 @@ export const Modal: React.FC<ModalProps> = ({
 
   const maxWidthClasses = {
     sm: 'max-w-md',
-    md: 'max-w-lg',
+    md: 'max-w-[640px]',
     lg: 'max-w-2xl',
     xl: 'max-w-4xl'
   }[maxWidth];
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
     >
       {/* Backdrop with subtle blur */}
       <div 
-        className="fixed inset-0 bg-[#14142B]/70 backdrop-blur-xs transition-opacity duration-200"
+        className="fixed inset-0 bg-[#14142B]/60 backdrop-blur-xs transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -93,28 +95,38 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal Container */}
       <div 
         ref={modalRef}
-        className={`relative w-full ${maxWidthClasses} bg-white rounded-2xl border border-[#14142B]/10 shadow-2xl overflow-hidden z-10 font-['Inter'] transition-all ${className}`}
+        className={`relative w-full ${maxWidthClasses} max-h-[calc(100dvh-24px)] flex flex-col bg-white rounded-[8px] border border-[#14142B]/10 shadow-[0_24px_70px_rgba(20,20,43,0.16)] z-10 font-['Inter'] transition-all duration-200 motion-reduce:transition-none ${className}`}
       >
         {/* Modal Header */}
         {(title || subtitle) && (
-          <div className="px-6 pt-6 pb-4 border-b border-[#14142B]/8 flex items-start justify-between gap-4">
-            <div>
-              {title && (
-                <h3 id="modal-title" className="text-xl font-bold text-[#14142B] font-['Space_Grotesk'] leading-snug">
-                  {title}
-                </h3>
+          <div className="px-6 sm:px-8 pt-6 pb-5 sm:pt-6.5 sm:pb-5 border-b border-[#14142B]/8 flex items-start justify-between gap-4 shrink-0">
+            <div className="flex items-start gap-3 sm:gap-3.5 pr-2">
+              {headerIcon && (
+                <span 
+                  className="material-symbols-outlined text-[22px] sm:text-[24px] text-[#1C6FE0] shrink-0 mt-0.5" 
+                  aria-hidden="true"
+                >
+                  {headerIcon}
+                </span>
               )}
-              {subtitle && (
-                <p className="text-xs sm:text-sm text-[#14142B]/70 mt-1 leading-relaxed">
-                  {subtitle}
-                </p>
-              )}
+              <div>
+                {title && (
+                  <h3 id="modal-title" className="text-lg sm:text-[21px] font-bold text-[#14142B] font-['Space_Grotesk'] leading-tight tracking-tight">
+                    {title}
+                  </h3>
+                )}
+                {subtitle && (
+                  <p className="text-xs sm:text-[13px] text-[#14142B]/70 mt-1 leading-relaxed">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-lg text-[#14142B]/60 hover:text-[#14142B] hover:bg-[#14142B]/5 flex items-center justify-center transition-colors cursor-pointer shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1C6FE0]"
+              className="w-10 h-10 rounded-[6px] text-[#14142B]/50 hover:text-[#14142B] hover:bg-[#14142B]/[0.04] active:bg-[#14142B]/[0.08] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1C6FE0]"
               aria-label="Cerrar modal"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -123,7 +135,7 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Modal Body */}
-        <div className="p-6">
+        <div className="p-6 sm:p-8 overflow-y-auto">
           {children}
         </div>
       </div>

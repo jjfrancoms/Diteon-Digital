@@ -1,7 +1,11 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_CAPTURE_LEAD_FUNCTION_URL?: string;
+  readonly VITE_TURNSTILE_SITE_KEY?: string;
   readonly VITE_CONTACT_API_URL?: string;
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   readonly VITE_WHATSAPP_NUMBER?: string;
   readonly VITE_CONTACT_EMAIL?: string;
   readonly VITE_CONTACT_PHONE?: string;
