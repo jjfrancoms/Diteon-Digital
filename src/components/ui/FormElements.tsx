@@ -338,7 +338,7 @@ export function CustomSelect<T extends string = string>({
           disabled={disabled}
           onClick={() => setIsOpen((prev) => !prev)}
           onKeyDown={handleKeyDown}
-          className={`w-full h-12 rounded-[6px] border bg-white px-3.5 sm:px-4 text-xs sm:text-sm text-[#14142B] flex items-center justify-between gap-2 transition-all duration-150 cursor-pointer focus:outline-none disabled:bg-[#14142B]/5 disabled:cursor-not-allowed ${
+          className={`w-full min-h-[48px] h-auto py-2.5 rounded-[6px] border bg-white px-3.5 sm:px-4 text-xs sm:text-sm text-[#14142B] flex items-center justify-between gap-2.5 transition-all duration-150 cursor-pointer focus:outline-none disabled:bg-[#14142B]/5 disabled:cursor-not-allowed ${
             error 
               ? 'border-[#FF6B35] focus:border-[#FF6B35] focus:ring-[2px] focus:ring-[#FF6B35]/10' 
               : isOpen
@@ -346,11 +346,11 @@ export function CustomSelect<T extends string = string>({
                 : 'border-[rgba(20,20,43,0.16)] hover:border-[rgba(20,20,43,0.30)] focus:border-[#1C6FE0] focus:ring-[2px] focus:ring-[#1C6FE0]/10'
           }`}
         >
-          <span className="truncate font-medium text-left">
+          <span className="font-medium text-left whitespace-normal break-words leading-snug sm:leading-5 flex-1 pr-1">
             {selectedOption.label}
           </span>
           <span 
-            className={`material-symbols-outlined text-[20px] text-[#14142B]/50 transition-transform duration-200 shrink-0 pointer-events-none ${
+            className={`material-symbols-outlined text-[20px] text-[#14142B]/50 transition-transform duration-200 shrink-0 self-center ml-1 pointer-events-none ${
               isOpen ? 'rotate-180 text-[#1C6FE0]' : ''
             }`}
             aria-hidden="true"
@@ -367,7 +367,7 @@ export function CustomSelect<T extends string = string>({
             role="listbox"
             aria-labelledby={label ? `${id}-label` : undefined}
             tabIndex={-1}
-            className="absolute top-[calc(100%+6px)] left-0 w-full z-50 bg-white rounded-[6px] border border-[rgba(20,20,43,0.12)] shadow-[0_18px_45px_rgba(20,20,43,0.14)] max-h-[280px] overflow-y-auto py-1 font-['Inter'] animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="absolute top-[calc(100%+6px)] left-0 sm:left-auto sm:right-0 w-full sm:w-[380px] sm:min-w-[360px] sm:max-w-[440px] max-w-[calc(100vw-32px)] z-50 bg-white rounded-[6px] border border-[rgba(20,20,43,0.12)] shadow-[0_18px_45px_rgba(20,20,43,0.16)] max-h-[320px] overflow-y-auto py-1 font-['Inter'] animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
           >
             {options.map((opt, index) => {
               const isSelected = opt.value === value;
@@ -381,7 +381,7 @@ export function CustomSelect<T extends string = string>({
                   aria-selected={isSelected}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   onClick={() => selectOption(opt)}
-                  className={`min-h-[42px] sm:min-h-[44px] px-3.5 sm:px-4 py-2.5 flex items-center justify-between text-xs sm:text-sm cursor-pointer transition-colors duration-100 select-none rounded-none ${
+                  className={`min-h-[44px] px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-xs sm:text-sm cursor-pointer transition-colors duration-100 select-none rounded-none ${
                     isSelected 
                       ? 'bg-[#1C6FE0]/[0.075] text-[#14142B] font-semibold' 
                       : isHighlighted 
@@ -389,10 +389,12 @@ export function CustomSelect<T extends string = string>({
                         : 'text-[#14142B]/85 hover:bg-[#1C6FE0]/[0.045]'
                   }`}
                 >
-                  <span className="truncate pr-2">{opt.label}</span>
+                  <span className="whitespace-normal break-words leading-snug sm:leading-5 flex-1 pr-1 text-left">
+                    {opt.label}
+                  </span>
                   {isSelected && (
                     <span 
-                      className="material-symbols-outlined text-[18px] text-[#1C6FE0] shrink-0"
+                      className="material-symbols-outlined text-[18px] text-[#1C6FE0] shrink-0 self-center"
                       aria-hidden="true"
                     >
                       check
