@@ -28,11 +28,12 @@ export interface TurnstileWidgetRef {
   reset: () => void;
 }
 
-interface TurnstileWidgetProps {
+export interface TurnstileWidgetProps {
   siteKey?: string;
   onVerify: (token: string) => void;
   onExpire?: () => void;
   onError?: (errorCode?: string) => void;
+  resetKey?: number | string;
   className?: string;
   theme?: 'light' | 'dark' | 'auto';
 }
@@ -40,7 +41,18 @@ interface TurnstileWidgetProps {
 const TURNSTILE_SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetProps>(
-  ({ siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY, onVerify, onExpire, onError, className = '', theme = 'light' }, ref) => {
+  (
+    {
+      siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY,
+      onVerify,
+      onExpire,
+      onError,
+      resetKey,
+      className = '',
+      theme = 'light',
+    },
+    ref
+  ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
 
@@ -61,7 +73,20 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
       onErrorRef.current = onError;
     }, [onError]);
 
-    // Expose reset method to parent component
+    // Handle reset via resetKey prop changes
+    useEffect(() => {
+      if (resetKey !== undefined && resetKey !== 0 && widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+        } catch (e) {
+          if (import.meta.env.DEV) {
+            console.error('[Turnstile Reset Error]', e);
+          }
+        }
+      }
+    }, [resetKey]);
+
+    // Expose reset method to parent component via ref
     useImperativeHandle(ref, () => ({
       reset: () => {
         if (widgetIdRef.current && window.turnstile) {
@@ -73,7 +98,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
             }
           }
         }
-      }
+      },
     }));
 
     useEffect(() => {
@@ -121,7 +146,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
                 onErrorRef.current?.(errorCode);
               }
               return true;
-            }
+            },
           });
           widgetIdRef.current = id;
         } catch (err) {
@@ -189,3 +214,5 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
 );
 
 TurnstileWidget.displayName = 'TurnstileWidget';
+
+export default TurnstileWidget;

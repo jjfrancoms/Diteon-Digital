@@ -1,16 +1,41 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { submitContactLead } from '../services/contactService';
-import { trackEvent } from '../services/analytics';
-import { contactConfig } from '../config/contact';
-import { SOLUTION_OPTIONS, SolutionOptionValue } from '../config/solutionOptions';
-import { Modal } from './ui/Modal';
-import { Input, Textarea, CustomSelect } from './ui/FormElements';
-import { Button } from './ui/Button';
-import { SocialIcon } from './ui/SocialIcon';
-import { TurnstileWidget, TurnstileWidgetRef } from './TurnstileWidget';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
-// Re-export SolutionOptionValue and SOLUTION_OPTIONS for backwards compatibility with other components
+import {
+  submitContactLead,
+} from '../services/contactService';
+
+import {
+  trackEvent,
+} from '../services/analytics';
+
+import {
+  SOLUTION_OPTIONS,
+  type SolutionOptionValue,
+} from '../config/solutionOptions';
+
 export { SOLUTION_OPTIONS, type SolutionOptionValue };
+
+import {
+  Modal,
+} from './ui/Modal';
+
+import {
+  Input,
+  Select,
+  Textarea,
+} from './ui/FormElements';
+
+import {
+  Button,
+} from './ui/Button';
+
+import {
+  TurnstileWidget,
+} from './TurnstileWidget';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -19,366 +44,516 @@ interface ContactModalProps {
 }
 
 interface FormErrors {
-  name?: string;
+  fullName?: string;
+  companyName?: string;
+  email?: string;
+  phone?: string;
   contact?: string;
   solution?: string;
   message?: string;
   turnstile?: string;
 }
 
-export const ContactModal: React.FC<ContactModalProps> = ({ 
-  isOpen, 
+type SubmitStatus =
+  | 'idle'
+  | 'validating'
+  | 'submitting'
+  | 'success'
+  | 'error';
+
+const EMAIL_REGEX =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const PHONE_REGEX =
+  /^[\d\s+()-]{6,30}$/;
+
+export const ContactModal: React.FC<ContactModalProps> = ({
+  isOpen,
   onClose,
-  defaultSolution = 'otro'
+  defaultSolution = 'otro',
 }) => {
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [contact, setContact] = useState('');
-  const [solution, setSolution] = useState<SolutionOptionValue>(defaultSolution);
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+
+  const [solution, setSolution] =
+    useState<SolutionOptionValue>(defaultSolution);
+
   const [message, setMessage] = useState('');
   const [honeypot, setHoneypot] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
-  const [turnstileError, setTurnstileError] = useState('');
-  
-  const turnstileRef = useRef<TurnstileWidgetRef>(null);
 
-  const [status, setStatus] = useState<'idle' | 'validating' | 'submitting' | 'success' | 'error'>('idle');
-  const [serverFeedback, setServerFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [turnstileToken, setTurnstileToken] =
+    useState('');
 
-  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() || '';
+  const [turnstileResetKey, setTurnstileResetKey] =
+    useState(0);
 
-  // Stable callbacks for Turnstile widget to prevent unnecessary re-renders or widget reconstruction
-  const handleTurnstileVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-    setTurnstileError('');
-    setErrors((prev) => ({
-      ...prev,
-      turnstile: undefined,
-    }));
-  }, []);
+  const [status, setStatus] =
+    useState<SubmitStatus>('idle');
+
+  const [serverFeedback, setServerFeedback] =
+    useState<{
+      message: string;
+      isError?: boolean;
+    } | null>(null);
+
+  const [errors, setErrors] =
+    useState<FormErrors>({});
+
+  const turnstileSiteKey =
+    import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    setFullName('');
+    setCompanyName('');
+    setPhone('');
+    setEmail('');
+    setSolution(defaultSolution);
+    setMessage('');
+    setHoneypot('');
+    setTurnstileToken('');
+    setTurnstileResetKey((value) => value + 1);
+    setStatus('idle');
+    setServerFeedback(null);
+    setErrors({});
+
+    trackEvent('contact_form_started', {
+      initialSolution: defaultSolution,
+    });
+  }, [isOpen, defaultSolution]);
+
+  const clearError = useCallback(
+    (field: keyof FormErrors) => {
+      setErrors((previous) => {
+        if (!previous[field]) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          [field]: undefined,
+        };
+      });
+    },
+    []
+  );
+
+  const handleTurnstileVerify = useCallback(
+    (token: string) => {
+      setTurnstileToken(token);
+      clearError('turnstile');
+    },
+    [clearError]
+  );
 
   const handleTurnstileExpire = useCallback(() => {
     setTurnstileToken('');
-    setTurnstileError('La verificación expiró. Inténtalo nuevamente.');
+    setErrors((previous) => ({
+      ...previous,
+      turnstile:
+        'La verificación expiró. Complétala nuevamente.',
+    }));
   }, []);
 
-  const handleTurnstileError = useCallback((errorCode?: string) => {
+  const handleTurnstileError = useCallback(() => {
     setTurnstileToken('');
-    setTurnstileError('No pudimos completar la verificación de seguridad. Inténtalo nuevamente.');
-    if (import.meta.env.DEV) {
-      console.warn('[Turnstile]', errorCode);
-    }
+    setErrors((previous) => ({
+      ...previous,
+      turnstile:
+        'No se pudo completar la verificación de seguridad.',
+    }));
   }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      setSolution(defaultSolution);
-      setStatus('idle');
-      setServerFeedback(null);
-      setErrors({});
-      setTurnstileError('');
-      trackEvent('contact_form_started', { initialSolution: defaultSolution });
-    }
-  }, [isOpen, defaultSolution]);
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+    const nextErrors: FormErrors = {};
 
-    if (!name.trim()) {
-      newErrors.name = 'Por favor ingresa tu nombre completo.';
-    } else if (name.trim().length < 2) {
-      newErrors.name = 'El nombre debe tener al menos 2 caracteres.';
+    const normalizedName = fullName.trim();
+    const normalizedCompany = companyName.trim();
+    const normalizedEmail = email.trim();
+    const normalizedPhone = phone.trim();
+    const normalizedMessage = message.trim();
+
+    if (!normalizedName) {
+      nextErrors.fullName =
+        'Ingresa tu nombre completo.';
+    } else if (normalizedName.length < 2) {
+      nextErrors.fullName =
+        'El nombre debe tener al menos 2 caracteres.';
+    } else if (normalizedName.length > 120) {
+      nextErrors.fullName =
+        'El nombre no puede superar 120 caracteres.';
     }
 
-    if (!contact.trim()) {
-      newErrors.contact = 'Ingresa un WhatsApp o correo para poder responderte.';
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^[\d\s+()-]{7,20}$/;
-      const isEmail = emailRegex.test(contact.trim());
-      const isPhone = phoneRegex.test(contact.trim());
-
-      if (!isEmail && !isPhone) {
-        newErrors.contact = 'Ingresa un correo válido (ej. juan@empresa.com) o un teléfono.';
-      }
+    if (normalizedCompany.length > 150) {
+      nextErrors.companyName =
+        'La empresa no puede superar 150 caracteres.';
     }
 
-    // Require Turnstile token only if VITE_TURNSTILE_SITE_KEY is configured
-    if (turnstileSiteKey && !turnstileToken) {
-      newErrors.turnstile = 'Completa la verificación para continuar.';
-      setTurnstileError('Completa la verificación para continuar.');
-    } else {
-      setTurnstileError('');
+    if (!normalizedEmail && !normalizedPhone) {
+      nextErrors.contact =
+        'Completa al menos un correo electrónico o un número de WhatsApp.';
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (
+      normalizedEmail &&
+      (!EMAIL_REGEX.test(normalizedEmail) ||
+        normalizedEmail.length > 255)
+    ) {
+      nextErrors.email =
+        'Ingresa un correo electrónico válido.';
+    }
+
+    if (
+      normalizedPhone &&
+      !PHONE_REGEX.test(normalizedPhone)
+    ) {
+      nextErrors.phone =
+        'Ingresa un número de WhatsApp o celular válido.';
+    }
+
+    if (!solution) {
+      nextErrors.solution =
+        'Selecciona una solución de interés.';
+    }
+
+    if (normalizedMessage.length > 2000) {
+      nextErrors.message =
+        'El mensaje no puede superar 2000 caracteres.';
+    }
+
+    if (!turnstileToken.trim()) {
+      nextErrors.turnstile =
+        'Completa la verificación de seguridad.';
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (status === 'submitting') return;
+  const handleSubmit = async (
+    event: React.FormEvent
+  ) => {
+    event.preventDefault();
+
+    if (status === 'submitting') {
+      return;
+    }
 
     setStatus('validating');
-    const isValid = validateForm();
+    setServerFeedback(null);
 
-    if (!isValid) {
+    if (!validateForm()) {
       setStatus('idle');
       return;
     }
 
     setStatus('submitting');
-    setServerFeedback(null);
-    trackEvent('contact_form_submit', { solution });
 
     const result = await submitContactLead(
       {
-        name: name.trim(),
-        company: company.trim(),
-        contact: contact.trim(),
+        fullName: fullName.trim(),
+        companyName: companyName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
         solution,
         message: message.trim(),
-        honeypot
+        honeypot,
       },
       turnstileToken
     );
 
     if (result.success) {
       setStatus('success');
-      setServerFeedback({ message: result.message, isError: false });
-      trackEvent('contact_form_success', { solution });
-      trackEvent('contact_form_submitted', { solution });
-      turnstileRef.current?.reset();
-      setTurnstileToken('');
-    } else {
-      setStatus('error');
-      setServerFeedback({ 
-        message: result.message, 
-        isError: true 
+      setServerFeedback({
+        message: result.message,
+        isError: false,
       });
-      trackEvent('contact_form_error', { solution, error: result.error });
-      // Reset Turnstile on error so user can re-verify if needed
-      turnstileRef.current?.reset();
-      setTurnstileToken('');
+
+      trackEvent('contact_form_submitted', {
+        solution,
+      });
+
+      return;
     }
+
+    setStatus('error');
+
+    setServerFeedback({
+      message: result.message,
+      isError: true,
+    });
+
+    setTurnstileToken('');
+    setTurnstileResetKey((value) => value + 1);
+
+    trackEvent('contact_form_error', {
+      solution,
+      error: result.error,
+    });
   };
 
-  const handleReset = () => {
-    setStatus('idle');
-    setName('');
-    setCompany('');
-    setContact('');
-    setMessage('');
-    setTurnstileToken('');
-    setTurnstileError('');
-    setErrors({});
-    setServerFeedback(null);
-    turnstileRef.current?.reset();
+  const handleClose = () => {
+    if (status === 'submitting') {
+      return;
+    }
+
     onClose();
   };
-
-  const customWhatsAppMsg = `Hola DITEON, soy ${name.trim() || 'un cliente'}${company.trim() ? ` de ${company.trim()}` : ''}. Me interesa evaluar una solución de ${solution.toUpperCase()} para mi negocio.`;
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Hablemos de tu proyecto"
       subtitle="Cuéntanos sobre tu negocio y prepararemos un diagnóstico a tu medida."
-      headerIcon="forum"
-      maxWidth="md"
+      maxWidth="lg"
+      className="rounded-[8px]"
     >
       {status === 'success' ? (
-        /* ESTADO C — SOLICITUD ENVIADA CON ÉXITO */
-        <div className="py-3 sm:py-4 text-center">
-          <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-600 flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[24px] sm:text-[26px]" aria-hidden="true">check</span>
+        <div className="py-5 text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <span className="material-symbols-outlined text-[24px]">
+              check_circle
+            </span>
           </div>
 
-          <h4 className="text-lg sm:text-xl font-bold text-[#14142B] font-['Space_Grotesk'] tracking-tight mb-2">
-            Solicitud enviada con éxito
+          <h4 className="mt-4 font-['Space_Grotesk'] text-lg font-bold text-[#14142B]">
+            Solicitud enviada
           </h4>
 
-          <p className="text-xs sm:text-sm text-[#14142B]/70 max-w-sm sm:max-w-md mx-auto font-['Inter'] leading-relaxed mb-6">
-            {serverFeedback?.message || 'Hemos recibido tus datos con éxito. Un ingeniero de software se comunicará contigo a la brevedad.'}
+          <p className="mx-auto mt-2 max-w-md font-['Inter'] text-sm leading-relaxed text-[#14142B]/70">
+            {serverFeedback?.message ||
+              'Recibimos tus datos correctamente. Nos pondremos en contacto contigo a la brevedad.'}
           </p>
 
-          <div className="flex justify-center">
-            <button
+          <div className="mt-5">
+            <Button
               type="button"
-              onClick={handleReset}
-              className="px-7 py-2.5 sm:py-3 rounded-[6px] bg-[#1C6FE0] hover:bg-[#155fc5] active:bg-[#104fa8] text-white text-xs sm:text-sm font-semibold tracking-tight transition-all duration-150 cursor-pointer shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1C6FE0] focus-visible:ring-offset-2"
+              variant="primary"
+              size="md"
+              onClick={onClose}
             >
               Cerrar
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        /* ESTADO A & B — FORMULARIO NORMAL Y SELECTOR DE SOLUCIÓN */
-        <form onSubmit={handleSubmit} className="text-xs font-['Inter']" noValidate>
-          
-          {/* Honeypot field (anti-spam invisible) */}
-          <div className="hidden" aria-hidden="true">
-            <label htmlFor="website_hp">No llenar si eres humano</label>
-            <input 
-              type="text" 
-              id="website_hp" 
-              name="website_hp" 
-              tabIndex={-1} 
-              value={honeypot} 
-              onChange={(e) => setHoneypot(e.target.value)} 
-              autoComplete="off" 
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="space-y-4 font-['Inter']"
+        >
+          <div
+            className="hidden"
+            aria-hidden="true"
+          >
+            <label htmlFor="website_hp">
+              No llenar si eres humano
+            </label>
+
+            <input
+              id="website_hp"
+              name="website_hp"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={(event) =>
+                setHoneypot(event.target.value)
+              }
             />
           </div>
 
-          {/* Actionable Server-level error notification */}
           {status === 'error' && serverFeedback && (
-            <div 
-              className="mb-5 p-3.5 rounded-[6px] bg-red-50 border border-red-200 text-red-900 text-xs space-y-2.5"
+            <div
               role="alert"
+              className="flex items-start gap-2 rounded-[6px] border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700"
             >
-              <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-[18px] text-red-600 shrink-0 mt-0.5" aria-hidden="true">error</span>
-                <div className="leading-tight">
-                  <span className="font-bold block text-[13px]">No se pudo enviar la solicitud en este momento</span>
-                  <span className="text-red-700">{serverFeedback.message}</span>
-                </div>
-              </div>
+              <span className="material-symbols-outlined mt-0.5 text-[16px]">
+                error
+              </span>
 
-              {/* Fallback Channels */}
-              {(contactConfig.whatsapp.isConfigured || contactConfig.email.isConfigured) && (
-                <div className="pt-1 flex flex-wrap gap-2">
-                  {contactConfig.whatsapp.isConfigured && (
-                    <a
-                      href={contactConfig.whatsapp.getLink(customWhatsAppMsg)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] bg-[#25D366] text-white font-semibold text-xs hover:bg-[#1fa851] transition-colors"
-                    >
-                      <SocialIcon brand="whatsapp" size={14} />
-                      <span>Escribir por WhatsApp</span>
-                    </a>
-                  )}
-                  {contactConfig.email.isConfigured && (
-                    <a
-                      href={contactConfig.email.href}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] bg-[#14142B] text-white font-semibold text-xs hover:bg-[#202042] transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[14px]" aria-hidden="true">mail</span>
-                      <span>Enviar por Email</span>
-                    </a>
-                  )}
-                </div>
-              )}
+              <span>
+                {serverFeedback.message}
+              </span>
             </div>
           )}
 
-          {/* Campos del Formulario — Layout de 4 Filas Desktop / 1 Columna Mobile */}
-          <div className="space-y-4 sm:space-y-4.5">
-            {/* Fila 1: Nombre completo | Empresa (opcional) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4.5">
-              <Input
-                id="contact-name"
-                label="Nombre completo"
-                placeholder="Carlos Mendoza"
-                required
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
-                }}
-                error={errors.name}
-              />
-
-              <Input
-                id="contact-company"
-                label="Empresa (opcional)"
-                optionalLabel="(opcional)"
-                placeholder="Distribuidora Lima SAC"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-              />
-            </div>
-
-            {/* Fila 2: WhatsApp o correo | Solución de interés */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4.5">
-              <Input
-                id="contact-detail"
-                label="WhatsApp o correo"
-                placeholder="+51 987 654 321 / contacto@empresa.com"
-                required
-                value={contact}
-                onChange={(e) => {
-                  setContact(e.target.value);
-                  if (errors.contact) setErrors((prev) => ({ ...prev, contact: undefined }));
-                }}
-                error={errors.contact}
-              />
-
-              <CustomSelect<SolutionOptionValue>
-                id="contact-solution"
-                label="Solución de interés"
-                required
-                value={solution}
-                onChange={(val) => setSolution(val)}
-                options={SOLUTION_OPTIONS}
-              />
-            </div>
-
-            {/* Fila 3: Mensaje / descripción del proyecto a ancho completo */}
-            <Textarea
-              id="contact-message"
-              label="Cuéntanos brevemente tu necesidad"
-              optionalLabel="(opcional)"
-              placeholder="Cuéntanos qué proceso quieres mejorar o qué problema necesitas resolver."
-              rows={3}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              id="contact-full-name"
+              label="Nombre completo"
+              placeholder="Carlos Mendoza"
+              required
+              value={fullName}
+              onChange={(event) => {
+                setFullName(event.target.value);
+                clearError('fullName');
+              }}
+              error={errors.fullName}
+              autoComplete="name"
             />
 
-            {/* Fila 4: Cloudflare Turnstile */}
-            {turnstileSiteKey && (
-              <div className="pt-1">
-                <TurnstileWidget
-                  ref={turnstileRef}
-                  siteKey={turnstileSiteKey}
-                  onVerify={handleTurnstileVerify}
-                  onExpire={handleTurnstileExpire}
-                  onError={handleTurnstileError}
-                />
-                {(turnstileError || errors.turnstile) && (
-                  <p className="text-xs text-[#FF6B35] font-medium flex items-center gap-1.5 pt-1">
-                    <span className="material-symbols-outlined text-[15px] shrink-0">error</span>
-                    <span>{turnstileError || errors.turnstile}</span>
-                  </p>
-                )}
-              </div>
+            <Input
+              id="contact-company"
+              label="Empresa (opcional)"
+              placeholder="Distribuidora SAC Lima"
+              value={companyName}
+              onChange={(event) => {
+                setCompanyName(event.target.value);
+                clearError('companyName');
+              }}
+              error={errors.companyName}
+              autoComplete="organization"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              id="contact-phone"
+              label="WhatsApp / Celular"
+              type="tel"
+              placeholder="+51 987 654 321"
+              value={phone}
+              onChange={(event) => {
+                setPhone(event.target.value);
+                clearError('phone');
+                clearError('contact');
+              }}
+              error={errors.phone}
+              autoComplete="tel"
+              inputMode="tel"
+            />
+
+            <Input
+              id="contact-email"
+              label="Correo electrónico"
+              type="email"
+              placeholder="contacto@empresa.com"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                clearError('email');
+                clearError('contact');
+              }}
+              error={errors.email}
+              autoComplete="email"
+              inputMode="email"
+            />
+          </div>
+
+          {errors.contact && (
+            <p
+              role="alert"
+              className="-mt-2 flex items-center gap-1 text-xs font-medium text-red-600"
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                error
+              </span>
+
+              <span>
+                {errors.contact}
+              </span>
+            </p>
+          )}
+
+          {!errors.contact && (
+            <p className="-mt-2 text-[11px] text-[#14142B]/50">
+              Completa al menos uno de los dos medios de contacto. Puedes ingresar ambos.
+            </p>
+          )}
+
+          <Select
+            id="contact-solution"
+            label="Solución de interés"
+            required
+            value={solution}
+            onChange={(event) => {
+              setSolution(
+                event.target.value as SolutionOptionValue
+              );
+              clearError('solution');
+            }}
+            options={[...SOLUTION_OPTIONS]}
+            error={errors.solution}
+          />
+
+          <Textarea
+            id="contact-message"
+            label="Cuéntanos brevemente tu necesidad"
+            placeholder="Cuéntanos cuál es la lógica de tu negocio, qué proceso quieres mejorar o qué problema necesitas resolver."
+            rows={3}
+            value={message}
+            onChange={(event) => {
+              setMessage(event.target.value);
+              clearError('message');
+            }}
+            error={errors.message}
+          />
+
+          <div className="pt-1">
+            <TurnstileWidget
+              siteKey={turnstileSiteKey}
+              onVerify={handleTurnstileVerify}
+              onExpire={handleTurnstileExpire}
+              onError={handleTurnstileError}
+              resetKey={turnstileResetKey}
+            />
+
+            {errors.turnstile && (
+              <p
+                role="alert"
+                className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600"
+              >
+                <span className="material-symbols-outlined text-[14px]">
+                  error
+                </span>
+
+                <span>
+                  {errors.turnstile}
+                </span>
+              </p>
             )}
           </div>
 
-          {/* Separación Estructural y Footer de Acciones Horizontal en Desktop */}
-          <div className="border-t border-[#14142B]/8 pt-5 mt-6 sm:mt-7 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Microcopy de Confidencialidad */}
-            <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] sm:text-xs text-[#14142B]/50">
-              <span className="material-symbols-outlined text-[14px] text-[#14142B]/40 shrink-0" aria-hidden="true">lock</span>
-              <span>Información confidencial. Sin spam.</span>
+          <div className="flex flex-col gap-3 border-t border-[#14142B]/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2 text-[11px] leading-tight text-[#14142B]/50">
+              <span className="material-symbols-outlined text-[16px]">
+                lock
+              </span>
+
+              <span>
+                Información confidencial. Sin spam.
+              </span>
             </div>
 
-            {/* Botón CTA */}
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={status === 'submitting'}
-              disabled={status === 'submitting'}
-              className="w-full sm:w-auto sm:min-w-[270px] h-12 sm:h-[50px] rounded-[6px] px-6 sm:px-7 text-xs sm:text-sm font-semibold tracking-tight shadow-2xs hover:bg-[#155fc5]"
-              iconRight={<span className="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>}
-            >
-              Solicitar diagnóstico sin compromiso
-            </Button>
+            <div className="w-full sm:w-auto sm:min-w-[310px]">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                isLoading={status === 'submitting'}
+                iconRight={
+                  <span className="material-symbols-outlined text-[18px]">
+                    arrow_forward
+                  </span>
+                }
+              >
+                Solicitar diagnóstico sin compromiso
+              </Button>
+            </div>
           </div>
         </form>
       )}
     </Modal>
   );
 };
+
+export default ContactModal;
