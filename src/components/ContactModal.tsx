@@ -298,13 +298,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     });
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (status === 'submitting') {
       return;
     }
 
     onClose();
-  };
+  }, [status, onClose]);
 
   return (
     <Modal
