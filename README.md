@@ -1,99 +1,80 @@
-# DITEON Web
+# DITEON Digital
 
-Landing page oficial y portal web de presentación de **DITEON**, startup dedicada al desarrollo de software empresarial a medida, CRM, POS, ERP, gestión de inventario y automatización de procesos para negocios.
+Landing pública de DITEON para presentar soluciones de software a medida y captar consultas. Este repositorio no contiene el CRM privado ni el backend de recepción de leads.
 
----
+## Desarrollo
 
-## 🚀 Stack Tecnológico
-
-- **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Bundler & Dev Server**: [Vite](https://vitejs.dev/)
-- **Estilos**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Tipografías**: Space Grotesk (Titulares) e Inter (Cuerpo)
-- **Iconografía**: Google Material Symbols Outlined + Isotipos oficiales SVG/PNG
-
----
-
-## 🛠️ Instalación y Desarrollo Local
-
-### 1. Clonar el repositorio e instalar dependencias
+Requiere Node.js 22 o superior y npm. El lockfile está versionado para instalaciones reproducibles.
 
 ```bash
-npm install
-```
-
-### 2. Configurar variables de entorno
-
-Copia el archivo de ejemplo `.env.example` a `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Configura los siguientes valores públicos:
-
-```env
-# URL de tu endpoint o webhook para recepción de leads de contacto
-VITE_CONTACT_API_URL=https://api.tudominio.com/leads
-
-# Número oficial de WhatsApp con código de país (ej. +51987654321)
-VITE_WHATSAPP_NUMBER=+51987654321
-```
-
-> **Nota de seguridad**: Las variables con prefijo `VITE_` son públicas y se empaquetan en el frontend. Nunca coloques credenciales de base de datos o secretos privados en este archivo.
-
-### 3. Iniciar el servidor de desarrollo
-
-```bash
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-La aplicación iniciará en `http://localhost:3000`.
-
-### 4. Compilar para producción
-
 ```bash
-npm run build
+npm run lint          # TypeScript
+npm test              # Contrato de envío, validación, renderizado y enlaces
+npm run verify:form   # Regresión del contrato capture-lead
+npm run build         # Producción en dist/, robots y SEO según el origen configurado
 ```
 
----
+## Experiencia
 
-## 📁 Estructura del Proyecto
+- Hero con una interfaz ilustrativa y propuesta centrada en la operación del negocio.
+- Selector de necesidades: ventas, inventario, automatización y plataforma a medida.
+- Comparación del mismo proceso antes y después de conectarlo.
+- Demo guiada de tres pasos, galería manual de módulos y detalle del alcance de ejemplo.
+- Capas de ingeniería, metodología con entregables y ejemplos de integraciones.
+- Diagnóstico opcional de tres preguntas; sus respuestas se pueden revisar en el mensaje antes de enviar.
+- Contacto contextual y barra móvil que conserva la solución elegida.
+- Pestañas con flechas, Home y End; diálogos nativos con Escape y restauración de foco; movimiento reducido.
 
-```text
-├── public/                  # Favicons, isotipos de marca y archivos SEO (robots.txt, sitemap.xml)
-├── src/
-│   ├── components/          # Componentes modulares de la landing
-│   │   ├── ContactModal.tsx # Diálogo accesible para solicitud de diagnóstico
-│   │   ├── DiteonLogo.tsx   # Renderizador tipográfico y vectorial del logo oficial
-│   │   ├── FaqAndCta.tsx    # Acordeón accesible de preguntas frecuentes y CTA
-│   │   ├── Footer.tsx       # Pie de página institucional y navegación secundaria
-│   │   ├── Header.tsx       # Barra de navegación principal y responsive drawer
-│   │   ├── Hero.tsx         # Propuesta principal y dashboard interactivo demostrativo
-│   │   ├── ProblemSolution.tsx # Comparativa de procesos tradicionales vs conectados
-│   │   ├── ProcessAndWhy.tsx   # Metodología de 5 fases, diferenciales y marquee tecnológico
-│   │   └── SolutionShowcase.tsx# Demostrador interactivo accesible por pestañas
-│   ├── services/
-│   │   ├── analytics.ts     # Event dispatcher desacoplado para tracking
-│   │   ├── contactService.ts# Servicio para envío real de leads con validación y honeypot
-│   │   └── whatsapp.ts      # Generador de enlaces seguros de WhatsApp
-│   ├── types.ts             # Interfaces y tipos globales
-│   ├── App.tsx              # Componente raíz con control de modales y contexto
-│   ├── main.tsx             # Punto de entrada React
-│   └── index.css            # Estilos globales, tokens de color y animaciones accesibles
-├── .env.example             # Documentación de variables de entorno requeridas
-├── package.json             # Manifiesto del proyecto y scripts
-└── vite.config.ts           # Configuración de compilación Vite
-```
+Los datos de las demos son ilustrativos. No se presentan como clientes, resultados o integraciones en funcionamiento.
 
----
+## Configuración del contacto
 
-## 🛡️ Seguridad y Accesibilidad
+Las variables `VITE_` son públicas y se incorporan al compilar. Configúralas en el entorno de despliegue y vuelve a compilar tras cambiarlas.
 
-- **Formulario de contacto real**: Validación estricta en cliente, prevención de doble envío, campo *honeypot* invisible para mitigación de spam y manejo explícito de fallos de red sin simulación ficticia.
-- **Accesibilidad (WCAG AA)**: Modales con *focus trap*, control total por teclado (`Tab`, `Shift+Tab`, `Escape`), etiquetas ARIA (`role="dialog"`, `role="tablist"`, `role="region"`, `aria-expanded`, `aria-selected`) y soporte para usuarios con `prefers-reduced-motion`.
-- **SEO & Metadatos**: Integración de etiquetas Open Graph, Twitter Cards, `robots.txt`, `sitemap.xml` y marcado semántico JSON-LD `ProfessionalService`.
+| Variable | Uso |
+| --- | --- |
+| `VITE_CAPTURE_LEAD_FUNCTION_URL` | Endpoint HTTPS existente que recibe la consulta. Obligatorio para el formulario. |
+| `VITE_TURNSTILE_SITE_KEY` | Clave pública de Cloudflare Turnstile. Obligatoria para el formulario. |
+| `VITE_WHATSAPP_NUMBER` | Número oficial con prefijo internacional. Opcional. |
+| `VITE_CONTACT_EMAIL` / `VITE_CONTACT_PHONE` | Canales oficiales alternativos. Opcionales. |
+| `VITE_LINKEDIN_URL` / `VITE_INSTAGRAM_URL` / `VITE_CALENDLY_URL` | URLs HTTPS oficiales. Opcionales. |
+| `VITE_SITE_URL` | Origen público HTTPS, sin rutas. Se usa para canonical y sitemap. |
 
----
+`VITE_CONTACT_API_URL` es obsoleta y no se utiliza. El cliente opcional de `src/lib/supabase.ts` no participa en el flujo activo de esta landing. No hace falta introducir claves privadas o credenciales del CRM en el frontend.
 
-© 2026 DITEON. Todos los derechos reservados.
+Si falta endpoint o clave pública de Turnstile, la interfaz informa de la indisponibilidad y muestra solo canales válidos realmente configurados. No simula una recepción exitosa.
+
+### Contrato con el backend existente
+
+`ContactModal → submitContactLead → POST VITE_CAPTURE_LEAD_FUNCTION_URL`.
+
+El cuerpo conserva las claves `full_name`, `company_name`, `email`, `phone`, `service_interest`, `message`, `source`, `turnstile_token` y `website_hp`. `source` es `landing`; los textos opcionales vacíos se envían como `null`. Los valores de soluciones se mantienen en `src/config/solutionOptions.ts`.
+
+La confirmación exige **HTTP 2xx y un objeto JSON con `success: true`**. No se exige un ID nuevo ni se muestran errores internos del servidor. HTML, JSON malformado, `null`, 204 o respuestas sin confirmación dejan un error recuperable.
+
+La espera tiene un límite de 15 segundos y se puede cerrar el diálogo mientras se envía. Cancelar la espera no revierte una inserción que el servidor ya haya realizado. No hay reintentos automáticos. Ante error se conservan los campos y se solicita una nueva verificación.
+
+El backend debe verificar Turnstile, validar los campos y el honeypot, limitar abuso y aplicar CORS para el origen público. Esas funciones no están en este repositorio y no se modificaron. Referencias oficiales: [renderizado de Turnstile](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/), [validación en servidor](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).
+
+## SEO y medición
+
+`scripts/generate-seo.mjs` genera URLs absolutas a partir de `VITE_SITE_URL` o del hostname de producción `VERCEL_PROJECT_PRODUCTION_URL`. Si no existe origen confirmado, genera robots válido sin inventar un dominio ni un sitemap relativo. Se mantienen las imágenes sociales existentes.
+
+`trackEvent` emite `diteon_analytics` con eventos de intención, demo, diagnóstico y formulario, sin enviar nombre, teléfono, correo ni texto libre. Es un punto de integración; **no es almacenamiento de analítica**. Conectar un proveedor y validar recepción sigue requiriendo la configuración de ese proveedor. No se añadieron campos UTM al contrato externo sin verificar su soporte.
+
+## Organización
+
+- `src/config/experience.ts`: necesidades, textos y tipo de apertura del contacto.
+- `src/components/`: secciones de la landing y flujos de contacto.
+- `src/components/ui/Modal.tsx` y `Tabs.tsx`: primitivas compartidas accesibles.
+- `src/services/contactTransport.ts`: contrato HTTP, confirmación y cancelación.
+- `src/services/contactValidation.ts`: reglas de validación reutilizadas por formulario y canales.
+- `src/styles/tokens.css` y `landing.css`: identidad, componentes, responsive y movimiento.
+- `tests/`: pruebas aisladas que ejercitan el código real, sin enviar leads a producción.
+
+La verificación antigua por hashes congelaba los archivos defectuosos. `verify:form` ahora ejecuta pruebas conductuales del mismo contrato. Los cambios y límites de validación se detallan en [docs/LANDING_UPDATE.md](docs/LANDING_UPDATE.md).

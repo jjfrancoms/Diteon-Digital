@@ -1,83 +1,115 @@
-import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 import { Menu, X, ArrowUpRight } from 'lucide-react'
 import { Logo } from './Logo'
-import type { SolutionOptionValue } from '../config/solutionOptions'
+import type { ContactHandler } from '../config/experience'
 
 const nav = [
-  ['soluciones','Soluciones'],
-  ['producto','Producto'],
-  ['ingenieria','Ingeniería'],
-  ['metodologia','Metodología'],
-  ['integraciones','Integraciones'],
+  ['soluciones', 'Soluciones'],
+  ['producto', 'Demo'],
+  ['ingenieria', 'Ingeniería'],
+  ['metodologia', 'Cómo trabajamos'],
 ] as const
-
-export function Header({ onContact }: { onContact: (solution?: SolutionOptionValue) => void }) {
+export function Header({ onContact }: { onContact: ContactHandler }) {
   const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const [active, setActive] = useState('inicio')
-  const [progress, setProgress] = useState(0)
-  const dark = active === 'ingenieria'
-
+  const menuButton = useRef<HTMLButtonElement>(null)
+  const header = useRef<HTMLElement>(null)
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 18)
-      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
-      setProgress(Math.min(1, window.scrollY / max))
+    const media = window.matchMedia('(min-width: 1000px)')
+    const resize = () => {
+      if (media.matches) setOpen(false)
     }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter(entry => entry.isIntersecting)
-        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0]
-      if (visible?.target.id) setActive(visible.target.id)
-    }, { rootMargin: '-32% 0px -58% 0px', threshold: [0,.1,.25,.5,.75] })
-
-    ;['inicio', ...nav.map(x => x[0])].forEach(id => {
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
-    })
-
+    media.addEventListener('change', resize)
+    const visible = new Set<Element>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target)
+          else visible.delete(entry.target)
+        }
+        const nearest = [...visible].sort(
+          (a, b) =>
+            Math.abs(a.getBoundingClientRect().top - 80) -
+            Math.abs(b.getBoundingClientRect().top - 80),
+        )[0]
+        if (nearest) setActive(nearest.id)
+      },
+      { rootMargin: '-80px 0px -65% 0px' },
+    )
+    document
+      .querySelectorAll('main > section[id]')
+      .forEach((section) => observer.observe(section))
     return () => {
-      window.removeEventListener('scroll', onScroll)
+      media.removeEventListener('change', resize)
       observer.disconnect()
     }
   }, [])
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open])
-
   return (
-    <header className={`site-header ${scrolled ? 'site-header--scrolled' : ''} ${dark ? 'site-header--dark' : ''}`}>
-      <div className="header-progress" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
+    <header
+      ref={header}
+      className="site-header"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) {
+          setOpen(false)
+          menuButton.current?.focus()
+        }
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node))
+          setOpen(false)
+      }}
+    >
       <div className="shell site-header__inner">
-        <Logo light={dark} />
+        <Logo />
         <nav className="desktop-nav" aria-label="Navegación principal">
-          {nav.map(([id,label]) => (
-            <a key={id} className={active===id?'active':''} href={`#${id}`}>{label}</a>
+          {nav.map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              aria-current={active === id ? 'location' : undefined}
+            >
+              {label}
+            </a>
           ))}
         </nav>
-        <button className={`button desktop-cta ${dark ? 'button--light-outline' : 'button--dark'}`} onClick={() => onContact('otro')}>
-          Hablemos <ArrowUpRight size={15}/>
+        <button
+          className="button button--dark desktop-cta"
+          onClick={() => onContact()}
+        >
+          Hablemos <ArrowUpRight size={16} />
         </button>
-        <button className="menu-button" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? <X size={21}/> : <Menu size={21}/>} 
+        <button
+          ref={menuButton}
+          className="icon-button menu-button"
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? <X /> : <Menu />}
         </button>
       </div>
-      <AnimatePresence>
-        {open && (
-          <motion.div className={`mobile-menu ${dark ? 'mobile-menu--dark' : ''}`} initial={{opacity:0,y:-12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} transition={{duration:.2}}>
-            {nav.map(([id,label],i)=><a key={id} href={`#${id}`} onClick={()=>setOpen(false)}><span>0{i+1}</span>{label}</a>)}
-            <button className={`button ${dark ? 'button--bone' : 'button--dark'}`} onClick={()=>{setOpen(false);onContact('otro')}}>Hablemos <ArrowUpRight size={16}/></button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <nav
+        id="mobile-navigation"
+        className="mobile-menu"
+        aria-label="Navegación móvil"
+        hidden={!open}
+      >
+        {nav.map(([id, label]) => (
+          <a key={id} href={`#${id}`} onClick={() => setOpen(false)}>
+            {label}
+          </a>
+        ))}
+        <button
+          className="button button--dark"
+          onClick={() => {
+            setOpen(false)
+            onContact()
+          }}
+        >
+          Hablemos <ArrowUpRight size={16} />
+        </button>
+      </nav>
     </header>
   )
 }

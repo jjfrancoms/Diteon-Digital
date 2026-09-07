@@ -1,559 +1,465 @@
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
-
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import {
+  AlertCircle,
+  ArrowUpRight,
+  Check,
+  Info,
+  LoaderCircle,
+} from 'lucide-react'
+import {
+  contactFormAvailable,
   submitContactLead,
-} from '../services/contactService';
-
+} from '../services/contactService'
 import {
-  trackEvent,
-} from '../services/analytics';
-
+  validateContact,
+  type ContactFields,
+  type FormErrors,
+} from '../services/contactValidation'
 import {
   SOLUTION_OPTIONS,
   type SolutionOptionValue,
-} from '../config/solutionOptions';
+} from '../config/solutionOptions'
+import { getAvailableContactChannels } from '../config/contact'
+import { trackEvent } from '../services/analytics'
+import { Modal } from './ui/Modal'
+import { TurnstileWidget } from './TurnstileWidget'
+export { SOLUTION_OPTIONS, type SolutionOptionValue }
 
-export { SOLUTION_OPTIONS, type SolutionOptionValue };
-
-import {
-  Modal,
-} from './ui/Modal';
-
-import {
-  Input,
-  Select,
-  Textarea,
-} from './ui/FormElements';
-
-import {
-  Button,
-} from './ui/Button';
-
-import {
-  TurnstileWidget,
-} from './TurnstileWidget';
-
-interface ContactModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  defaultSolution?: SolutionOptionValue;
+type Status = 'idle' | 'submitting' | 'success' | 'error'
+interface Props {
+  isOpen: boolean
+  onClose: () => void
+  defaultSolution?: SolutionOptionValue
+  initialMessage?: string
 }
-
-interface FormErrors {
-  fullName?: string;
-  companyName?: string;
-  email?: string;
-  phone?: string;
-  contact?: string;
-  solution?: string;
-  message?: string;
-  turnstile?: string;
-}
-
-type SubmitStatus =
-  | 'idle'
-  | 'validating'
-  | 'submitting'
-  | 'success'
-  | 'error';
-
-const EMAIL_REGEX =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const PHONE_REGEX =
-  /^[\d\s+()-]{6,30}$/;
-
-export const ContactModal: React.FC<ContactModalProps> = ({
+export function ContactModal({
   isOpen,
   onClose,
   defaultSolution = 'otro',
-}) => {
-  const [fullName, setFullName] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-
-  const [solution, setSolution] =
-    useState<SolutionOptionValue>(defaultSolution);
-
-  const [message, setMessage] = useState('');
-  const [honeypot, setHoneypot] = useState('');
-
-  const [turnstileToken, setTurnstileToken] =
-    useState('');
-
-  const [turnstileResetKey, setTurnstileResetKey] =
-    useState(0);
-
-  const [status, setStatus] =
-    useState<SubmitStatus>('idle');
-
-  const [serverFeedback, setServerFeedback] =
-    useState<{
-      message: string;
-      isError?: boolean;
-    } | null>(null);
-
-  const [errors, setErrors] =
-    useState<FormErrors>({});
-
-  const turnstileSiteKey =
-    import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
-
+  initialMessage = '',
+}: Props) {
+  const id = useId()
+  const [fields, setFields] = useState<ContactFields>({
+    fullName: '',
+    companyName: '',
+    email: '',
+    phone: '',
+    solution: defaultSolution,
+    message: initialMessage,
+    honeypot: '',
+  })
+  const [token, setToken] = useState('')
+  const [resetKey, setResetKey] = useState(0)
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [status, setStatus] = useState<Status>('idle')
+  const [feedback, setFeedback] = useState('')
+  const [verificationFailed, setVerificationFailed] = useState(false)
+  const controller = useRef<AbortController | null>(null)
+  const inFlight = useRef(false)
+  const form = useRef<HTMLFormElement>(null)
+  const successHeading = useRef<HTMLHeadingElement>(null)
+  const channels = getAvailableContactChannels(
+    `Hola DITEON, me interesa ${SOLUTION_OPTIONS.find((item) => item.value === fields.solution)?.label ?? 'conversar sobre un proyecto'}.`,
+  )
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? ''
   useEffect(() => {
-    if (!isOpen) {
-      return;
+    trackEvent('contact_form_started', { initialSolution: defaultSolution })
+    return () => {
+      controller.current?.abort()
+      controller.current = null
+      inFlight.current = false
     }
-
-    setFullName('');
-    setCompanyName('');
-    setPhone('');
-    setEmail('');
-    setSolution(defaultSolution);
-    setMessage('');
-    setHoneypot('');
-    setTurnstileToken('');
-    setTurnstileResetKey((value) => value + 1);
-    setStatus('idle');
-    setServerFeedback(null);
-    setErrors({});
-
-    trackEvent('contact_form_started', {
-      initialSolution: defaultSolution,
-    });
-  }, [isOpen, defaultSolution]);
-
-  const clearError = useCallback(
-    (field: keyof FormErrors) => {
-      setErrors((previous) => {
-        if (!previous[field]) {
-          return previous;
-        }
-
-        return {
-          ...previous,
-          [field]: undefined,
-        };
-      });
-    },
-    []
-  );
-
-  const handleTurnstileVerify = useCallback(
-    (token: string) => {
-      setTurnstileToken(token);
-      clearError('turnstile');
-    },
-    [clearError]
-  );
-
-  const handleTurnstileExpire = useCallback(() => {
-    setTurnstileToken('');
+  }, [defaultSolution])
+  useEffect(() => {
+    if (status === 'success') successHeading.current?.focus()
+  }, [status])
+  function update(field: keyof ContactFields, value: string) {
+    setFields((previous) => ({ ...previous, [field]: value }))
     setErrors((previous) => ({
       ...previous,
-      turnstile:
-        'La verificación expiró. Complétala nuevamente.',
-    }));
-  }, []);
-
-  const handleTurnstileError = useCallback(() => {
-    setTurnstileToken('');
-    setErrors((previous) => ({
-      ...previous,
-      turnstile:
-        'No se pudo completar la verificación de seguridad.',
-    }));
-  }, []);
-
-  const validateForm = (): boolean => {
-    const nextErrors: FormErrors = {};
-
-    const normalizedName = fullName.trim();
-    const normalizedCompany = companyName.trim();
-    const normalizedEmail = email.trim();
-    const normalizedPhone = phone.trim();
-    const normalizedMessage = message.trim();
-
-    if (!normalizedName) {
-      nextErrors.fullName =
-        'Ingresa tu nombre completo.';
-    } else if (normalizedName.length < 2) {
-      nextErrors.fullName =
-        'El nombre debe tener al menos 2 caracteres.';
-    } else if (normalizedName.length > 120) {
-      nextErrors.fullName =
-        'El nombre no puede superar 120 caracteres.';
+      [field]: undefined,
+      ...(field === 'email' || field === 'phone' ? { contact: undefined } : {}),
+    }))
+  }
+  function focusInvalid(nextErrors: FormErrors) {
+    const field = nextErrors.fullName
+      ? 'fullName'
+      : nextErrors.companyName
+        ? 'companyName'
+        : nextErrors.email || nextErrors.contact
+          ? 'email'
+          : nextErrors.phone
+            ? 'phone'
+            : nextErrors.solution
+              ? 'solution'
+              : nextErrors.message
+                ? 'message'
+                : 'verification'
+    requestAnimationFrame(() =>
+      document.getElementById(`${id}-${field}`)?.focus(),
+    )
+  }
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    if (inFlight.current || !contactFormAvailable) return
+    const nextErrors = validateContact(fields, token)
+    setErrors(nextErrors)
+    setFeedback('')
+    if (Object.keys(nextErrors).length) {
+      focusInvalid(nextErrors)
+      return
     }
-
-    if (normalizedCompany.length > 150) {
-      nextErrors.companyName =
-        'La empresa no puede superar 150 caracteres.';
+    inFlight.current = true
+    const request = new AbortController()
+    controller.current = request
+    setStatus('submitting')
+    trackEvent('contact_form_submit', { solution: fields.solution })
+    try {
+      const result = await submitContactLead(
+        { ...fields, solution: fields.solution as SolutionOptionValue },
+        token,
+        request.signal,
+      )
+      if (controller.current !== request || request.signal.aborted) return
+      setStatus(result.success ? 'success' : 'error')
+      setFeedback(result.message)
+      if (result.success)
+        trackEvent('contact_form_success', { solution: fields.solution })
+      else {
+        setToken('')
+        setResetKey((value) => value + 1)
+        trackEvent('contact_form_error', { error: result.error })
+      }
+    } finally {
+      if (controller.current === request) {
+        controller.current = null
+        inFlight.current = false
+      }
     }
-
-    if (!normalizedEmail && !normalizedPhone) {
-      nextErrors.contact =
-        'Completa al menos un correo electrónico o un número de WhatsApp.';
-    }
-
-    if (
-      normalizedEmail &&
-      (!EMAIL_REGEX.test(normalizedEmail) ||
-        normalizedEmail.length > 255)
-    ) {
-      nextErrors.email =
-        'Ingresa un correo electrónico válido.';
-    }
-
-    if (
-      normalizedPhone &&
-      !PHONE_REGEX.test(normalizedPhone)
-    ) {
-      nextErrors.phone =
-        'Ingresa un número de WhatsApp o celular válido.';
-    }
-
-    if (!solution) {
-      nextErrors.solution =
-        'Selecciona una solución de interés.';
-    }
-
-    if (normalizedMessage.length > 2000) {
-      nextErrors.message =
-        'El mensaje no puede superar 2000 caracteres.';
-    }
-
-    if (!turnstileToken.trim()) {
-      nextErrors.turnstile =
-        'Completa la verificación de seguridad.';
-    }
-
-    setErrors(nextErrors);
-
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleSubmit = async (
-    event: React.FormEvent
-  ) => {
-    event.preventDefault();
-
-    if (status === 'submitting') {
-      return;
-    }
-
-    setStatus('validating');
-    setServerFeedback(null);
-
-    if (!validateForm()) {
-      setStatus('idle');
-      return;
-    }
-
-    setStatus('submitting');
-
-    const result = await submitContactLead(
-      {
-        fullName: fullName.trim(),
-        companyName: companyName.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-        solution,
-        message: message.trim(),
-        honeypot,
-      },
-      turnstileToken
-    );
-
-    if (result.success) {
-      setStatus('success');
-      setServerFeedback({
-        message: result.message,
-        isError: false,
-      });
-
-      trackEvent('contact_form_submitted', {
-        solution,
-      });
-
-      return;
-    }
-
-    setStatus('error');
-
-    setServerFeedback({
-      message: result.message,
-      isError: true,
-    });
-
-    setTurnstileToken('');
-    setTurnstileResetKey((value) => value + 1);
-
-    trackEvent('contact_form_error', {
-      solution,
-      error: result.error,
-    });
-  };
-
-  const handleClose = useCallback(() => {
-    if (status === 'submitting') {
-      return;
-    }
-
-    onClose();
-  }, [status, onClose]);
-
+  }
+  const errorFor = (field: keyof ContactFields) =>
+    errors[field] ||
+    (field === 'email' || field === 'phone' ? errors.contact : undefined)
+  const describedBy = (field: keyof ContactFields) =>
+    errorFor(field)
+      ? `${id}-${field}-error`
+      : field === 'email' || field === 'phone'
+        ? `${id}-contact-hint`
+        : undefined
+  const fieldError = (field: keyof ContactFields) =>
+    errorFor(field) && (
+      <p className="field-error" id={`${id}-${field}-error`}>
+        {errorFor(field)}
+      </p>
+    )
+  const channelLinks = channels.length > 0 && (
+    <div className="contact-channels">
+      {channels.map((channel) => (
+        <a
+          key={channel.id}
+          href={channel.href}
+          target={channel.isExternal ? '_blank' : undefined}
+          rel={channel.isExternal ? 'noopener noreferrer' : undefined}
+          onClick={() =>
+            trackEvent(
+              channel.id === 'call'
+                ? 'phone_click'
+                : (`${channel.id}_click` as Parameters<typeof trackEvent>[0]),
+            )
+          }
+        >
+          {channel.label}
+          <ArrowUpRight size={13} />
+        </a>
+      ))}
+    </div>
+  )
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleClose}
-      title="Hablemos de tu proyecto"
-      subtitle="Cuéntanos sobre tu negocio y prepararemos un diagnóstico a tu medida."
-      maxWidth="lg"
-      className="rounded-[8px]"
+      onClose={onClose}
+      title={
+        status === 'success'
+          ? 'Gracias por escribirnos'
+          : 'Hablemos de tu proyecto'
+      }
+      subtitle={
+        status === 'success'
+          ? undefined
+          : 'Cuéntanos qué quieres mejorar. Empecemos por tu necesidad.'
+      }
     >
       {status === 'success' ? (
-        <div className="py-5 text-center">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-            <span className="material-symbols-outlined text-[24px]">
-              check_circle
+        <div className="contact-success">
+          <span className="contact-success__icon">
+            <Check size={27} />
+          </span>
+          <h3 ref={successHeading} tabIndex={-1}>
+            Solicitud recibida
+          </h3>
+          <p role="status">{feedback}</p>
+          <button className="button button--dark" onClick={onClose}>
+            Volver a la página
+          </button>
+        </div>
+      ) : !contactFormAvailable ? (
+        <div>
+          <div
+            className="form-notice"
+            role="status"
+            tabIndex={-1}
+            data-initial-focus
+          >
+            <Info size={19} />
+            <span>
+              El formulario no está disponible temporalmente.
+              {channels.length
+                ? ' Puedes conversar con nosotros por estos canales.'
+                : 'Vuelve a intentarlo más tarde.'}
             </span>
           </div>
-
-          <h4 className="mt-4 font-['Space_Grotesk'] text-lg font-bold text-[#14142B]">
-            Solicitud enviada
-          </h4>
-
-          <p className="mx-auto mt-2 max-w-md font-['Inter'] text-sm leading-relaxed text-[#14142B]/70">
-            {serverFeedback?.message ||
-              'Recibimos tus datos correctamente. Nos pondremos en contacto contigo a la brevedad.'}
-          </p>
-
-          <div className="mt-5">
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              onClick={onClose}
-            >
-              Cerrar
-            </Button>
-          </div>
+          {initialMessage && (
+            <div className="unavailable-summary">
+              <h3>Tu punto de partida</h3>
+              <p>{initialMessage}</p>
+            </div>
+          )}
+          {channelLinks}
         </div>
       ) : (
         <form
-          onSubmit={handleSubmit}
+          ref={form}
+          className="contact-form"
           noValidate
-          className="space-y-4 font-['Inter']"
+          onSubmit={submit}
+          aria-busy={status === 'submitting'}
         >
-          <div
-            className="hidden"
-            aria-hidden="true"
-          >
-            <label htmlFor="website_hp">
-              No llenar si eres humano
-            </label>
-
-            <input
-              id="website_hp"
-              name="website_hp"
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-              value={honeypot}
-              onChange={(event) =>
-                setHoneypot(event.target.value)
-              }
-            />
-          </div>
-
-          {status === 'error' && serverFeedback && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-[6px] border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700"
-            >
-              <span className="material-symbols-outlined mt-0.5 text-[16px]">
-                error
-              </span>
-
-              <span>
-                {serverFeedback.message}
+          <fieldset disabled={status === 'submitting'}>
+            <legend>Nombre y un medio de contacto son necesarios.</legend>
+            <div className="form-grid">
+              <div className="form-field">
+                <label htmlFor={`${id}-fullName`}>Nombre completo *</label>
+                <input
+                  id={`${id}-fullName`}
+                  name="full_name"
+                  autoComplete="name"
+                  data-initial-focus
+                  required
+                  maxLength={120}
+                  value={fields.fullName}
+                  onChange={(event) => update('fullName', event.target.value)}
+                  aria-invalid={Boolean(errors.fullName)}
+                  aria-describedby={describedBy('fullName')}
+                  placeholder="¿Cómo te llamas?"
+                />
+                {fieldError('fullName')}
+              </div>
+              <div className="form-field">
+                <label htmlFor={`${id}-companyName`}>
+                  Empresa <span>(opcional)</span>
+                </label>
+                <input
+                  id={`${id}-companyName`}
+                  name="company_name"
+                  autoComplete="organization"
+                  maxLength={150}
+                  value={fields.companyName}
+                  onChange={(event) =>
+                    update('companyName', event.target.value)
+                  }
+                  aria-invalid={Boolean(errors.companyName)}
+                  aria-describedby={describedBy('companyName')}
+                  placeholder="Nombre de tu negocio"
+                />
+                {fieldError('companyName')}
+              </div>
+              <div className="form-field">
+                <label htmlFor={`${id}-email`}>Correo electrónico</label>
+                <input
+                  id={`${id}-email`}
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  maxLength={255}
+                  value={fields.email}
+                  onChange={(event) => update('email', event.target.value)}
+                  aria-invalid={Boolean(errorFor('email'))}
+                  aria-describedby={describedBy('email')}
+                  placeholder="tu@empresa.com"
+                />
+                {fieldError('email')}
+              </div>
+              <div className="form-field">
+                <label htmlFor={`${id}-phone`}>WhatsApp o teléfono</label>
+                <input
+                  id={`${id}-phone`}
+                  type="tel"
+                  name="phone"
+                  autoComplete="tel"
+                  maxLength={30}
+                  value={fields.phone}
+                  onChange={(event) => update('phone', event.target.value)}
+                  aria-invalid={Boolean(errorFor('phone'))}
+                  aria-describedby={describedBy('phone')}
+                  placeholder="Incluye el prefijo de tu país"
+                />
+                {fieldError('phone')}
+              </div>
+              <p
+                className="form-hint form-contact-hint"
+                id={`${id}-contact-hint`}
+              >
+                Completa al menos uno: correo o teléfono.
+              </p>
+            </div>
+            <div className="form-field">
+              <label htmlFor={`${id}-solution`}>¿Qué necesitas resolver?</label>
+              <select
+                id={`${id}-solution`}
+                name="service_interest"
+                value={fields.solution}
+                onChange={(event) => update('solution', event.target.value)}
+                aria-invalid={Boolean(errors.solution)}
+                aria-describedby={describedBy('solution')}
+              >
+                {SOLUTION_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {fieldError('solution')}
+            </div>
+            <div className="form-field">
+              <label htmlFor={`${id}-message`}>
+                Cuéntanos un poco más <span>(opcional)</span>
+              </label>
+              <textarea
+                id={`${id}-message`}
+                name="message"
+                rows={4}
+                maxLength={2000}
+                value={fields.message}
+                onChange={(event) => update('message', event.target.value)}
+                aria-invalid={Boolean(errors.message)}
+                aria-describedby={describedBy('message')}
+                placeholder="¿Cómo trabajas hoy y qué te gustaría mejorar?"
+              />
+              {fieldError('message')}
+              <span className="form-message-count">
+                {fields.message.length} / 2000
               </span>
             </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input
-              id="contact-full-name"
-              label="Nombre completo"
-              placeholder="Carlos Mendoza"
-              required
-              value={fullName}
-              onChange={(event) => {
-                setFullName(event.target.value);
-                clearError('fullName');
-              }}
-              error={errors.fullName}
-              autoComplete="name"
-            />
-
-            <Input
-              id="contact-company"
-              label="Empresa (opcional)"
-              placeholder="Distribuidora SAC Lima"
-              value={companyName}
-              onChange={(event) => {
-                setCompanyName(event.target.value);
-                clearError('companyName');
-              }}
-              error={errors.companyName}
-              autoComplete="organization"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input
-              id="contact-phone"
-              label="WhatsApp / Celular"
-              type="tel"
-              placeholder="+51 987 654 321"
-              value={phone}
-              onChange={(event) => {
-                setPhone(event.target.value);
-                clearError('phone');
-                clearError('contact');
-              }}
-              error={errors.phone}
-              autoComplete="tel"
-              inputMode="tel"
-            />
-
-            <Input
-              id="contact-email"
-              label="Correo electrónico"
-              type="email"
-              placeholder="contacto@empresa.com"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                clearError('email');
-                clearError('contact');
-              }}
-              error={errors.email}
-              autoComplete="email"
-              inputMode="email"
-            />
-          </div>
-
-          {errors.contact && (
-            <p
-              role="alert"
-              className="-mt-2 flex items-center gap-1 text-xs font-medium text-red-600"
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                error
-              </span>
-
-              <span>
-                {errors.contact}
-              </span>
-            </p>
-          )}
-
-          {!errors.contact && (
-            <p className="-mt-2 text-[11px] text-[#14142B]/50">
-              Completa al menos uno de los dos medios de contacto. Puedes ingresar ambos.
-            </p>
-          )}
-
-          <Select
-            id="contact-solution"
-            label="Solución de interés"
-            required
-            value={solution}
-            onChange={(event) => {
-              setSolution(
-                event.target.value as SolutionOptionValue
-              );
-              clearError('solution');
-            }}
-            options={[...SOLUTION_OPTIONS]}
-            error={errors.solution}
-          />
-
-          <Textarea
-            id="contact-message"
-            label="Cuéntanos brevemente tu necesidad"
-            placeholder="Cuéntanos cuál es la lógica de tu negocio, qué proceso quieres mejorar o qué problema necesitas resolver."
-            rows={3}
-            value={message}
-            onChange={(event) => {
-              setMessage(event.target.value);
-              clearError('message');
-            }}
-            error={errors.message}
-          />
-
-          <div className="pt-1">
+            <div className="honeypot" aria-hidden="true">
+              <label htmlFor={`${id}-website`}>Sitio web</label>
+              <input
+                id={`${id}-website`}
+                name="website_hp"
+                tabIndex={-1}
+                autoComplete="off"
+                value={fields.honeypot}
+                onChange={(event) => update('honeypot', event.target.value)}
+              />
+            </div>
+          </fieldset>
+          <div
+            id={`${id}-verification`}
+            tabIndex={-1}
+            aria-label="Verificación de seguridad"
+          >
             <TurnstileWidget
-              siteKey={turnstileSiteKey}
-              onVerify={handleTurnstileVerify}
-              onExpire={handleTurnstileExpire}
-              onError={handleTurnstileError}
-              resetKey={turnstileResetKey}
+              siteKey={siteKey}
+              resetKey={resetKey}
+              onVerify={(value) => {
+                setToken(value)
+                setVerificationFailed(false)
+                setErrors((previous) => ({ ...previous, turnstile: undefined }))
+              }}
+              onExpire={() => {
+                setToken('')
+                setErrors((previous) => ({
+                  ...previous,
+                  turnstile: 'La verificación expiró. Complétala nuevamente.',
+                }))
+                setVerificationFailed(true)
+              }}
+              onError={() => {
+                setToken('')
+                setVerificationFailed(true)
+                setErrors((previous) => ({
+                  ...previous,
+                  turnstile:
+                    'No se pudo cargar la verificación. Revisa tu conexión y vuelve a intentarlo.',
+                }))
+              }}
             />
-
             {errors.turnstile && (
-              <p
-                role="alert"
-                className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600"
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  error
-                </span>
-
-                <span>
-                  {errors.turnstile}
-                </span>
+              <p className="field-error" role="alert">
+                {errors.turnstile}
               </p>
             )}
-          </div>
-
-          <div className="flex flex-col gap-3 border-t border-[#14142B]/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-2 text-[11px] leading-tight text-[#14142B]/50">
-              <span className="material-symbols-outlined text-[16px]">
-                lock
-              </span>
-
-              <span>
-                Información confidencial. Sin spam.
-              </span>
-            </div>
-
-            <div className="w-full sm:w-auto sm:min-w-[310px]">
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                fullWidth
-                isLoading={status === 'submitting'}
-                iconRight={
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_forward
-                  </span>
-                }
+            {verificationFailed && (
+              <button
+                type="button"
+                className="text-link"
+                disabled={status === 'submitting'}
+                onClick={() => {
+                  setToken('')
+                  setVerificationFailed(false)
+                  setResetKey((value) => value + 1)
+                  setErrors((previous) => ({
+                    ...previous,
+                    turnstile: undefined,
+                  }))
+                }}
               >
-                Solicitar diagnóstico sin compromiso
-              </Button>
-            </div>
+                Reintentar verificación
+              </button>
+            )}
           </div>
+          {feedback && status === 'error' && (
+            <div className="form-notice form-notice--error" role="alert">
+              <AlertCircle size={19} />
+              <span>{feedback}</span>
+            </div>
+          )}
+          <p className="form-hint">
+            Usaremos tus datos para responder a esta consulta. Consulta la{' '}
+            <a
+              href="/privacidad.html"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              política de privacidad (se abre en otra pestaña)
+            </a>
+            .
+          </p>
+          <button
+            type="submit"
+            className="button button--blue form-submit"
+            disabled={status === 'submitting'}
+          >
+            {status === 'submitting' ? (
+              <>
+                <LoaderCircle size={18} className="spinner" /> Enviando
+                solicitud…
+              </>
+            ) : (
+              <>
+                Enviar mi consulta <ArrowUpRight size={17} />
+              </>
+            )}
+          </button>
+          <p className="form-hint" role="status">
+            {status === 'submitting'
+              ? 'Esperando confirmación. Puedes cerrar esta ventana; el envío podría haberse recibido.'
+              : channels.length
+                ? 'También puedes usar los canales de contacto disponibles.'
+                : 'Revisa tus datos antes de enviar la consulta.'}
+          </p>
+          {channelLinks}
         </form>
       )}
     </Modal>
-  );
-};
-
-export default ContactModal;
+  )
+}

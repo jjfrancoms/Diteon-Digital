@@ -1,30 +1,105 @@
-import { ArrowRight } from 'lucide-react'
-import { motion, useReducedMotion } from 'framer-motion'
-
-const rows = [
-  ['Datos repartidos en Excel, chats y cuadernos','Una sola fuente de verdad conectada a tu operación.'],
-  ['Seguimientos que dependen de memoria','Flujos, estados y tareas con trazabilidad.'],
-  ['Inventario y caja sin visibilidad inmediata','Lectura operativa en el momento de decidir.'],
-  ['Tareas repetitivas y traspasos manuales de información','APIs, webhooks y automatizaciones con trazabilidad.'],
-]
+import { useState } from 'react'
+import {
+  MessageSquare,
+  FileSpreadsheet,
+  UserRound,
+  Check,
+  ArrowRight,
+} from 'lucide-react'
+import { Tabs } from './ui/Tabs'
 
 export function ProblemPromise() {
-  const reduced = useReducedMotion()
+  const [active, setActive] = useState('connected')
   return (
-    <section className="editorial-section" id="problema">
-      <div className="shell">
-        <div className="editorial-intro">
-          <div><span className="section-kicker">01 · El problema</span><h2>Tu negocio no necesita más herramientas aisladas. Necesita <em>una operación coherente.</em></h2></div>
-          <p>Cuando la información vive en lugares distintos, cada venta, seguimiento o cierre exige trabajo manual. DITEON diseña el sistema alrededor del flujo real, no al revés.</p>
+    <section className="section comparison" aria-labelledby="comparison-title">
+      <div className="shell comparison__layout">
+        <div>
+          <span className="eyebrow">
+            El mismo proceso. Otra forma de trabajar.
+          </span>
+          <h2 id="comparison-title">
+            Del «¿quién lo tiene?»
+            <br />
+            al <em>«ya está en marcha».</em>
+          </h2>
+          <p>
+            Así puede cambiar el seguimiento de una solicitud cuando la
+            información deja de estar dispersa.
+          </p>
         </div>
-        <div className="transformation-list">
-          <div className="transformation-list__head"><span>Hoy</span><span>Transformación</span><span>Con DITEON</span></div>
-          {rows.map(([before, after], i) => (
-            <motion.div className="transformation-row" key={before} initial={reduced?false:{opacity:0,y:14}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.45}} transition={{duration:.45,delay:i*.04}}>
-              <div><b>0{i+1}</b><p>{before}</p></div><div className="transform-arrow"><span/><ArrowRight size={18}/></div><p>{after}</p>
-            </motion.div>
-          ))}
-        </div>
+        <Tabs
+          label="Comparar formas de seguimiento"
+          activeId={active}
+          onChange={setActive}
+          tabs={[
+            {
+              id: 'manual',
+              label: 'Proceso disperso',
+              content: (
+                <div className="comparison__flow">
+                  <div>
+                    <MessageSquare />
+                    <span>
+                      El cliente escribe<b>La solicitud queda en un chat</b>
+                    </span>
+                  </div>
+                  <ArrowRight />
+                  <div>
+                    <FileSpreadsheet />
+                    <span>
+                      Alguien copia los datos
+                      <b>Otra versión en una hoja de cálculo</b>
+                    </span>
+                  </div>
+                  <ArrowRight />
+                  <div>
+                    <UserRound />
+                    <span>
+                      Se pregunta por el estado
+                      <b>El seguimiento depende de recordar</b>
+                    </span>
+                  </div>
+                  <p className="comparison__result">
+                    Información repartida. Responsabilidad poco clara.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              id: 'connected',
+              label: 'Proceso conectado',
+              content: (
+                <div className="comparison__flow">
+                  <div>
+                    <MessageSquare />
+                    <span>
+                      El cliente escribe<b>La solicitud entra al sistema</b>
+                    </span>
+                  </div>
+                  <ArrowRight />
+                  <div>
+                    <UserRound />
+                    <span>
+                      Se asigna un responsable
+                      <b>La próxima acción queda registrada</b>
+                    </span>
+                  </div>
+                  <ArrowRight />
+                  <div>
+                    <Check />
+                    <span>
+                      El equipo ve el estado
+                      <b>Un historial compartido y consultable</b>
+                    </span>
+                  </div>
+                  <p className="comparison__result">
+                    <Check size={16} /> Un proceso visible, de principio a fin.
+                  </p>
+                </div>
+              ),
+            },
+          ]}
+        />
       </div>
     </section>
   )

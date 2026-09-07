@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useSectionReveal } from './hooks/useSectionReveal'
 import { Header } from './components/Header'
 import { Hero } from './components/Hero'
 import { ProblemPromise } from './components/ProblemPromise'
@@ -7,38 +8,59 @@ import { ProjectsScroll } from './components/ProjectsScroll'
 import { Engineering } from './components/Engineering'
 import { Process } from './components/Process'
 import { Integrations } from './components/Integrations'
+import { Diagnostic } from './components/Diagnostic'
 import { FaqCta } from './components/FaqCta'
 import { Footer } from './components/Footer'
-import { ContactModal, type SolutionOptionValue } from './components/ContactModal'
+import { ContactModal } from './components/ContactModal'
+import { MobileContactBar } from './components/MobileContactBar'
+import type { SolutionOptionValue } from './config/solutionOptions'
 
 export default function App() {
-  const [isContactOpen, setIsContactOpen] = useState(false)
-  const [selectedSolution, setSelectedSolution] = useState<SolutionOptionValue>('otro')
-
-  const openContact = (solution: SolutionOptionValue = 'otro') => {
-    setSelectedSolution(solution)
-    setIsContactOpen(true)
-  }
-
+  useSectionReveal()
+  const [interest, setInterest] = useState<SolutionOptionValue>('otro')
+  const [contact, setContact] = useState<{
+    solution: SolutionOptionValue
+    message: string
+  } | null>(null)
+  const openContact = useCallback(
+    (solution?: SolutionOptionValue, message = '') => {
+      const selected = solution ?? interest
+      setInterest(selected)
+      setContact({ solution: selected, message })
+    },
+    [interest],
+  )
   return (
     <>
+      <a className="skip-link" href="#contenido">
+        Saltar al contenido
+      </a>
       <Header onContact={openContact} />
-      <main>
+      <main id="contenido" tabIndex={-1}>
         <Hero onContact={openContact} />
+        <Services onContact={openContact} onInterest={setInterest} />
         <ProblemPromise />
-        <Services onContact={openContact} />
         <ProjectsScroll onContact={openContact} />
         <Engineering />
         <Process />
         <Integrations />
+        <Diagnostic onContact={openContact} />
         <FaqCta onContact={openContact} />
       </main>
       <Footer onContact={openContact} />
-      <ContactModal
-        isOpen={isContactOpen}
-        onClose={() => setIsContactOpen(false)}
-        defaultSolution={selectedSolution}
+      <MobileContactBar
+        hidden={Boolean(contact)}
+        interest={interest}
+        onContact={openContact}
       />
+      {contact && (
+        <ContactModal
+          isOpen
+          onClose={() => setContact(null)}
+          defaultSolution={contact.solution}
+          initialMessage={contact.message}
+        />
+      )}
     </>
   )
 }

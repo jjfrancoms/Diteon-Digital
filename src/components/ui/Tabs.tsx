@@ -1,101 +1,83 @@
-import React, { useRef, useEffect } from 'react';
+import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react'
 
-export interface TabItem {
-  id: string;
-  label: string;
-  icon?: string;
-  badge?: string;
+interface TabItem {
+  id: string
+  label: string
+  content: ReactNode
+}
+interface TabsProps {
+  tabs: readonly TabItem[]
+  activeId: string
+  onChange: (id: string) => void
+  label: string
+  className?: string
 }
 
-export interface TabsProps {
-  tabs: TabItem[];
-  activeId: string;
-  onChange: (id: string) => void;
-  theme?: 'light' | 'dark';
-  className?: string;
-}
-
-export const Tabs: React.FC<TabsProps> = ({
+export function Tabs({
   tabs,
   activeId,
   onChange,
-  theme = 'dark',
+  label,
   className = '',
-}) => {
-  const tabListRef = useRef<HTMLDivElement>(null);
-  const isDark = theme === 'dark';
-
-  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
-    let nextIndex = index;
-    if (e.key === 'ArrowRight') {
-      nextIndex = (index + 1) % tabs.length;
-    } else if (e.key === 'ArrowLeft') {
-      nextIndex = (index - 1 + tabs.length) % tabs.length;
-    } else if (e.key === 'Home') {
-      nextIndex = 0;
-    } else if (e.key === 'End') {
-      nextIndex = tabs.length - 1;
-    } else {
-      return;
-    }
-
-    e.preventDefault();
-    onChange(tabs[nextIndex].id);
-    const buttons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-    buttons?.[nextIndex]?.focus();
-  };
-
+}: TabsProps) {
+  const prefix = useId()
+  const refs = useRef<Array<HTMLButtonElement | null>>([])
+  function navigate(event: KeyboardEvent, index: number) {
+    const next =
+      event.key === 'ArrowRight'
+        ? (index + 1) % tabs.length
+        : event.key === 'ArrowLeft'
+          ? (index - 1 + tabs.length) % tabs.length
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? tabs.length - 1
+              : -1
+    if (next < 0) return
+    event.preventDefault()
+    onChange(tabs[next].id)
+    refs.current[next]?.focus({ preventScroll: true })
+    refs.current[next]?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'instant',
+    })
+  }
   return (
-    <div 
-      ref={tabListRef}
-      role="tablist"
-      aria-label="Soluciones DITEON"
-      className={`flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto no-scrollbar ${
-        isDark 
-          ? 'bg-white/5 border border-white/10' 
-          : 'bg-[#14142B]/5 border border-[#14142B]/10'
-      } ${className}`}
-    >
-      {tabs.map((tab, idx) => {
-        const isActive = tab.id === activeId;
-        const tabId = `tab-${tab.id}`;
-        const panelId = `tabpanel-${tab.id}`;
-
-        return (
+    <div className={`tabs ${className}`}>
+      <div className="tabs__list" role="tablist" aria-label={label}>
+        {tabs.map((tab, index) => (
           <button
             key={tab.id}
-            id={tabId}
-            role="tab"
+            ref={(el) => {
+              refs.current[index] = el
+            }}
             type="button"
-            aria-selected={isActive}
-            aria-controls={panelId}
-            tabIndex={isActive ? 0 : -1}
+            role="tab"
+            id={`${prefix}-tab-${tab.id}`}
+            aria-controls={`${prefix}-panel-${tab.id}`}
+            aria-selected={activeId === tab.id}
+            tabIndex={activeId === tab.id ? 0 : -1}
             onClick={() => onChange(tab.id)}
-            onKeyDown={(e) => handleKeyDown(e, idx)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer select-none font-['Inter'] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1C6FE0] ${
-              isActive
-                ? 'bg-[#1C6FE0] text-white shadow-xs'
-                : isDark
-                  ? 'text-white/70 hover:text-white hover:bg-white/5'
-                  : 'text-[#14142B]/70 hover:text-[#14142B] hover:bg-[#14142B]/5'
-            }`}
+            onKeyDown={(event) => navigate(event, index)}
           >
-            {tab.icon && (
-              <span className="material-symbols-outlined text-[20px] shrink-0 flex items-center justify-center" aria-hidden="true">
-                {tab.icon}
-              </span>
-            )}
-            <span>{tab.label}</span>
-            {tab.badge && (
-              <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
-                isActive ? 'bg-white/20 text-white' : isDark ? 'bg-white/10 text-white/70' : 'bg-[#14142B]/10 text-[#14142B]/70'
-              }`}>
-                {tab.badge}
-              </span>
-            )}
+            {tab.label}
           </button>
-        );
-      })}
+        ))}
+      </div>
+      {tabs.map((tab) => (
+        <div
+          key={tab.id}
+          className="tabs__panel"
+          id={`${prefix}-panel-${tab.id}`}
+          role="tabpanel"
+          aria-labelledby={`${prefix}-tab-${tab.id}`}
+          tabIndex={0}
+          hidden={activeId !== tab.id}
+        >
+          {tab.content}
+        </div>
+      ))}
     </div>
-  );
-};
+  )
+}

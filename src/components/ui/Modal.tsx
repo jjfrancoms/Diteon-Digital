@@ -1,161 +1,85 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
 
 export interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title?: string;
-  subtitle?: string;
-  headerIcon?: string;
-  children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  subtitle?: string
+  children: ReactNode
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
+  className?: string
 }
 
-export const Modal: React.FC<ModalProps> = ({
+export function Modal({
   isOpen,
   onClose,
   title,
   subtitle,
-  headerIcon,
   children,
   maxWidth = 'md',
   className = '',
-}) => {
-  const modalRef = useRef<HTMLDivElement>(null);
-  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  const onCloseRef = useRef(onClose);
-
+}: ModalProps) {
+  const ref = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
+  const backdropDown = useRef(false)
   useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    previouslyFocusedElement.current = document.activeElement as HTMLElement;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    // Focus first input (or first focusable element) ONCE when modal opens
-    const timer = setTimeout(() => {
-      if (!modalRef.current) return;
-      const firstInput = modalRef.current.querySelector<HTMLElement>(
-        'input:not([type="hidden"]):not([disabled]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled])'
-      );
-      if (firstInput) {
-        firstInput.focus();
-      } else {
-        const focusables = modalRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusables && focusables.length > 0) {
-          focusables[0].focus();
-        }
-      }
-    }, 50);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onCloseRef.current();
-      } else if (e.key === 'Tab' && modalRef.current) {
-        const focusables = modalRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
+    if (!isOpen || !ref.current) return
+    const dialog = ref.current
+    const previous =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+    const overflow = document.body.style.overflow
+    dialog.showModal()
+    document.body.style.overflow = 'hidden'
+    dialog
+      .querySelector<HTMLElement>('[data-initial-focus]')
+      ?.focus({ preventScroll: true })
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
-      if (previouslyFocusedElement.current && typeof previouslyFocusedElement.current.focus === 'function') {
-        previouslyFocusedElement.current.focus();
-      }
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const maxWidthClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-[640px]',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl'
-  }[maxWidth];
-
-  return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
+      dialog.close()
+      document.body.style.overflow = overflow
+      if (previous?.isConnected) previous.focus({ preventScroll: true })
+    }
+  }, [isOpen])
+  if (!isOpen) return null
+  return createPortal(
+    <dialog
+      ref={ref}
+      className={`modal modal--${maxWidth} ${className}`}
+      aria-labelledby={titleId}
+      aria-describedby={subtitle ? `${titleId}-description` : undefined}
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      onPointerDown={(event) => {
+        backdropDown.current = event.target === event.currentTarget
+      }}
+      onClick={(event) => {
+        if (backdropDown.current && event.target === event.currentTarget)
+          onClose()
+      }}
     >
-      {/* Backdrop with subtle blur */}
-      <div 
-        className="fixed inset-0 bg-[#14142B]/60 backdrop-blur-xs transition-opacity duration-200"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal Container */}
-      <div 
-        ref={modalRef}
-        className={`relative w-full ${maxWidthClasses} max-h-[calc(100dvh-24px)] flex flex-col bg-white rounded-[8px] border border-[#14142B]/10 shadow-[0_24px_70px_rgba(20,20,43,0.16)] z-10 font-['Inter'] transition-all duration-200 motion-reduce:transition-none ${className}`}
-      >
-        {/* Modal Header */}
-        {(title || subtitle) && (
-          <div className="px-6 sm:px-8 pt-6 pb-5 sm:pt-6.5 sm:pb-5 border-b border-[#14142B]/8 flex items-start justify-between gap-4 shrink-0">
-            <div className="flex items-start gap-3 sm:gap-3.5 pr-2">
-              {headerIcon && (
-                <span 
-                  className="material-symbols-outlined text-[22px] sm:text-[24px] text-[#1C6FE0] shrink-0 mt-0.5" 
-                  aria-hidden="true"
-                >
-                  {headerIcon}
-                </span>
-              )}
-              <div>
-                {title && (
-                  <h3 id="modal-title" className="text-lg sm:text-[21px] font-bold text-[#14142B] font-['Space_Grotesk'] leading-tight tracking-tight">
-                    {title}
-                  </h3>
-                )}
-                {subtitle && (
-                  <p className="text-xs sm:text-[13px] text-[#14142B]/70 mt-1 leading-relaxed">
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-10 h-10 rounded-[6px] text-[#14142B]/50 hover:text-[#14142B] hover:bg-[#14142B]/[0.04] active:bg-[#14142B]/[0.08] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1C6FE0]"
-              aria-label="Cerrar modal"
-            >
-              <span className="material-symbols-outlined text-[20px]">close</span>
-            </button>
+      <div className="modal__surface">
+        <header className="modal__header">
+          <div>
+            <h2 id={titleId}>{title}</h2>
+            {subtitle && <p id={`${titleId}-description`}>{subtitle}</p>}
           </div>
-        )}
-
-        {/* Modal Body */}
-        <div className="p-6 sm:p-8 overflow-y-auto">
-          {children}
-        </div>
+          <button
+            className="icon-button"
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar ventana"
+          >
+            <X size={21} />
+          </button>
+        </header>
+        <div className="modal__body">{children}</div>
       </div>
-    </div>
-  );
-};
+    </dialog>,
+    document.body,
+  )
+}

@@ -4,6 +4,8 @@
  */
 
 export type AnalyticsEventName =
+  | 'demo_step_selected'
+  | 'diagnostic_completed'
   | 'hero_cta_click'
   | 'hero_contact_click'
   | 'solution_tab_selected'
@@ -20,9 +22,12 @@ export type AnalyticsEventName =
   | 'contact_form_submit'
   | 'contact_form_submitted'
   | 'contact_form_success'
-  | 'contact_form_error';
+  | 'contact_form_error'
 
-export function trackEvent(eventName: AnalyticsEventName, properties?: Record<string, unknown>) {
+export function trackEvent(
+  eventName: AnalyticsEventName,
+  properties?: Record<string, unknown>,
+) {
   if (typeof window !== 'undefined') {
     // Dispatch a custom window event that tag managers or listeners can capture
     window.dispatchEvent(
@@ -30,14 +35,14 @@ export function trackEvent(eventName: AnalyticsEventName, properties?: Record<st
         detail: {
           event: eventName,
           properties,
-          timestamp: new Date().toISOString()
-        }
-      })
-    );
+          timestamp: new Date().toISOString(),
+        },
+      }),
+    )
 
     // Optional console log in development
     if (import.meta.env.DEV) {
-      console.log(`[Analytics Event] ${eventName}:`, properties || {});
+      console.log(`[Analytics Event] ${eventName}:`, properties || {})
     }
   }
 }

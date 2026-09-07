@@ -1,53 +1,135 @@
-import { PointerEvent as ReactPointerEvent, useRef, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
-import { Layers3 } from 'lucide-react'
-import { DiteonSystemCore } from './DiteonSystemCore'
+import { useState } from 'react'
+import {
+  Users,
+  PanelsTopLeft,
+  Database,
+  Cloud,
+  ArrowDown,
+  Check,
+} from 'lucide-react'
+import { Tabs } from './ui/Tabs'
 
 const layers = [
-  {n:'01',title:'Tu negocio',tag:'OPERACIÓN',desc:'Procesos, personas, reglas y decisiones reales.'},
-  {n:'02',title:'Experiencia',tag:'INTERFAZ',desc:'Una interfaz clara para cada rol y contexto.'},
-  {n:'03',title:'Ingeniería',tag:'LÓGICA + DATOS',desc:'Permisos, datos, automatizaciones e integraciones.'},
-  {n:'04',title:'Infraestructura',tag:'CLOUD + SEGURIDAD',desc:'Despliegue, observabilidad, backups y capacidad de evolución.'},
+  {
+    id: 'operacion',
+    title: 'Tu operación',
+    icon: Users,
+    tag: 'PERSONAS Y PROCESOS',
+    description:
+      'Primero entendemos quién hace qué, qué información necesita y dónde se detiene el trabajo.',
+    checks: [
+      'Flujos y reglas de negocio',
+      'Responsables y prioridades',
+      'Alcance que se puede validar',
+    ],
+  },
+  {
+    id: 'experiencia',
+    title: 'La experiencia',
+    icon: PanelsTopLeft,
+    tag: 'INTERFAZ Y USABILIDAD',
+    description:
+      'Cada pantalla tiene una tarea clara. Diseñamos para las personas que usarán el sistema todos los días.',
+    checks: [
+      'Vistas adaptadas a cada rol',
+      'Diseño para distintos dispositivos',
+      'Estados y acciones comprensibles',
+    ],
+  },
+  {
+    id: 'logica',
+    title: 'La lógica y los datos',
+    icon: Database,
+    tag: 'REGLAS Y CONEXIONES',
+    description:
+      'La parte que no ves sostiene la que sí: permisos, validaciones y procesos que conectan tus herramientas.',
+    checks: [
+      'Acceso según responsabilidades',
+      'Validación de la información',
+      'Integraciones con trazabilidad',
+    ],
+  },
+  {
+    id: 'infraestructura',
+    title: 'La infraestructura',
+    icon: Cloud,
+    tag: 'DESPLIEGUE Y EVOLUCIÓN',
+    description:
+      'Preparamos el entorno de publicación y acordamos cómo mantener, observar y hacer evolucionar el sistema.',
+    checks: [
+      'Entornos y configuración',
+      'Respaldo y monitoreo según alcance',
+      'Documentación para dar continuidad',
+    ],
+  },
 ]
-
 export function Engineering() {
-  const [active,setActive] = useState(2)
-  const reduced = useReducedMotion()
-  const cardRef = useRef<HTMLDivElement>(null)
-
-  function move(e:ReactPointerEvent<HTMLDivElement>){
-    if(!cardRef.current)return
-    const r=cardRef.current.getBoundingClientRect()
-    cardRef.current.style.setProperty('--spot-x',`${e.clientX-r.left}px`)
-    cardRef.current.style.setProperty('--spot-y',`${e.clientY-r.top}px`)
-  }
-
+  const [active, setActive] = useState('logica')
   return (
-    <section className="engineering" id="ingenieria">
-      <div className="engineering__grid" aria-hidden="true"/>
-      <div className="shell engineering__header">
-        <span className="section-kicker section-kicker--light">04 · Ingeniería</span>
-        <h2>La experiencia visible y la arquitectura interna <em>trabajan juntas.</em></h2>
-        <p>Cada interfaz que entregamos se apoya en una arquitectura pensada para datos, permisos, integraciones, seguridad y evolución.</p>
-      </div>
-
-      <div className="shell engineering__workspace">
-        <div className="engineering__rail" role="tablist" aria-label="Capas del sistema">
-          {layers.map((layer,index)=><button key={layer.n} role="tab" aria-selected={active===index} className={active===index?'active':''} onClick={()=>setActive(index)}><span>{layer.n}</span><div><b>{layer.title}</b><small>{layer.tag}</small></div><i/></button>)}
-        </div>
-        <div className="engineering-card" ref={cardRef} onPointerMove={move}>
-          <div className="engineering-spotlight" aria-hidden="true"/>
-          <div className="engineering-card__copy">
-            <div className="engineering-live"><i/> SISTEMA DITEON</div>
-            <motion.div key={active} initial={reduced?false:{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:.35}}>
-              <span>{layers[active].n} / {layers[active].tag}</span>
-              <h3>{layers[active].title}</h3>
-              <p>{layers[active].desc}</p>
-            </motion.div>
-            <div className="engineering-hint"><Layers3 size={13}/> Arquitectura modular · capas independientes</div>
+    <section className="section engineering" id="ingenieria">
+      <div className="shell">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">03 / Lo que sostiene la experiencia</span>
+            <h2>
+              Se ve simple.
+              <br />
+              <em>Está bien conectado.</em>
+            </h2>
           </div>
-          <div className="engineering-card__scene"><DiteonSystemCore active={active}/></div>
+          <p>
+            Una buena interfaz necesita una base igual de cuidada. Pensamos el
+            sistema completo, desde tus procesos hasta su evolución.
+          </p>
         </div>
+        <Tabs
+          label="Capas del sistema"
+          className="engineering__tabs"
+          activeId={active}
+          onChange={setActive}
+          tabs={layers.map((layer, index) => ({
+            id: layer.id,
+            label: `0${index + 1} · ${layer.title}`,
+            content: (
+              <div className="engineering-panel">
+                <div>
+                  <span className="micro-label">{layer.tag}</span>
+                  <h3>{layer.title}</h3>
+                  <p>{layer.description}</p>
+                  <ul className="check-list">
+                    {layer.checks.map((check) => (
+                      <li key={check}>
+                        <Check size={16} />
+                        {check}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div
+                  className="architecture"
+                  aria-label={`Arquitectura del sistema. Capa seleccionada: ${layer.title}`}
+                >
+                  {layers.map((item, i) => (
+                    <div
+                      key={item.id}
+                      className={`architecture__item ${item.id === active ? 'is-active' : ''}`}
+                    >
+                      <span>0{i + 1}</span>
+                      <item.icon size={22} />
+                      <b>{item.title}</b>
+                      {i < 3 && (
+                        <ArrowDown
+                          className="architecture__connector"
+                          size={15}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ),
+          }))}
+        />
       </div>
     </section>
   )

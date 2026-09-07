@@ -3,16 +3,27 @@ import { Logo } from './Logo'
 import type { SolutionOptionValue } from '../config/solutionOptions'
 import { getAvailableContactChannels } from '../config/contact'
 
-export function Footer({onContact}:{onContact:(solution?:SolutionOptionValue)=>void}){
-  const channels = getAvailableContactChannels('Hola DITEON, me gustaría conversar sobre un proyecto de software.')
+export function Footer({
+  onContact,
+}: {
+  onContact: (solution?: SolutionOptionValue) => void
+}) {
+  const channels = getAvailableContactChannels(
+    'Hola DITEON, me gustaría conversar sobre un proyecto de software.',
+  )
 
   return (
     <footer className="footer">
       <div className="shell footer__top">
         <div className="footer__brand">
-          <Logo light/>
-          <p>Ingeniería de software a medida, automatización de procesos y plataformas de control operativo.</p>
-          <button className="footer-contact" onClick={() => onContact('otro')}>Iniciar conversación <ArrowUpRight size={16}/></button>
+          <Logo light />
+          <p>
+            Ingeniería de software a medida, automatización de procesos y
+            plataformas de control operativo.
+          </p>
+          <button className="footer-contact" onClick={() => onContact()}>
+            Iniciar conversación <ArrowUpRight size={16} />
+          </button>
         </div>
         <div className="footer__cols footer__cols--four">
           <div>
@@ -27,13 +38,26 @@ export function Footer({onContact}:{onContact:(solution?:SolutionOptionValue)=>v
             <a href="#producto">Producto</a>
             <a href="#ingenieria">Ingeniería</a>
             <a href="#metodologia">Metodología</a>
-            <button onClick={() => onContact('otro')}>Contacto</button>
+            <button onClick={() => onContact()}>Contacto</button>
           </div>
           <div>
             <b>Contacto</b>
-            {channels.length > 0 ? channels.map(channel => (
-              <a key={channel.id} href={channel.href} target={channel.isExternal ? '_blank' : undefined} rel={channel.isExternal ? 'noreferrer' : undefined}>{channel.label}</a>
-            )) : <button onClick={() => onContact('otro')}>Formulario de contacto</button>}
+            {channels.length > 0 ? (
+              channels.map((channel) => (
+                <a
+                  key={channel.id}
+                  href={channel.href}
+                  target={channel.isExternal ? '_blank' : undefined}
+                  rel={channel.isExternal ? 'noreferrer' : undefined}
+                >
+                  {channel.label}
+                </a>
+              ))
+            ) : (
+              <button onClick={() => onContact()}>
+                Formulario de contacto
+              </button>
+            )}
           </div>
           <div>
             <b>Legal</b>
@@ -43,8 +67,13 @@ export function Footer({onContact}:{onContact:(solution?:SolutionOptionValue)=>v
         </div>
       </div>
       <div className="shell footer__bottom">
-        <span>© 2026 DITEON. Todos los derechos reservados.</span>
-        <div><span>Lima, Perú</span><a href="#inicio">Volver arriba ↑</a></div>
+        <span>
+          © {new Date().getFullYear()} DITEON. Todos los derechos reservados.
+        </span>
+        <div>
+          <span>Lima, Perú</span>
+          <a href="#inicio">Volver arriba ↑</a>
+        </div>
       </div>
     </footer>
   )

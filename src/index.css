@@ -1,10 +1,3 @@
-@import "tailwindcss";
-@import "./styles/tokens.css";
-@import "./styles/parts/landing-01.css";
-@import "./styles/parts/landing-02.css";
-@import "./styles/parts/landing-03.css";
-@import "./styles/parts/landing-04.css";
-@import "./styles/parts/landing-05.css";
-@import "./styles/parts/landing-06.css";
-@import "./styles/parts/landing-07.css";
-@import "./styles/parts/landing-08.css";
+@import 'tailwindcss';
+@import './styles/tokens.css';
+@import './styles/landing.css';

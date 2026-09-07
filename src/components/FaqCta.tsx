@@ -1,70 +1,124 @@
-import { KeyboardEvent, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Plus, ArrowRight } from 'lucide-react'
-import { BackgroundPaths } from './BackgroundPaths'
-import type { SolutionOptionValue } from '../config/solutionOptions'
+import { useRef, useState, type KeyboardEvent } from 'react'
+import { Plus, ArrowUpRight } from 'lucide-react'
+import type { ContactHandler } from '../config/experience'
 import { trackEvent } from '../services/analytics'
 
 const faqs = [
-  ['¿DITEON trabaja solo con empresas grandes?','No. El criterio principal es que exista un proceso real que valga la pena ordenar, conectar o automatizar. El alcance se adapta a la etapa del negocio.'],
-  ['¿Puedo empezar por un módulo pequeño?','Sí. Diseñamos una arquitectura modular para comenzar por el punto de mayor impacto y ampliar después sin rehacer todo el sistema.'],
-  ['¿Cómo se define la propiedad del software?','La propiedad del código, documentación y entregables se acuerda desde el inicio y queda expresada en el alcance contractual antes de comenzar el desarrollo.'],
-  ['¿Integran WhatsApp, APIs o herramientas existentes?','Sí. Diseñamos integraciones según disponibilidad de APIs, permisos, seguridad, webhooks, reintentos y reglas del proceso.'],
-  ['¿Cuánto tarda un proyecto?','Depende del alcance, cantidad de roles, integraciones y complejidad del proceso. Preferimos dividir el trabajo en fases entregables para validar antes de ampliar.'],
-  ['¿Qué pasa después del lanzamiento?','Definimos soporte, monitoreo, correcciones y evolución según el proyecto. La arquitectura queda preparada para añadir módulos sin reconstruir la base.'],
-  ['¿Cómo cotizan un proyecto?','Primero entendemos objetivo, usuarios, alcance, integraciones y riesgos. Con eso proponemos fases y un alcance defendible antes de hablar de una cifra cerrada.'],
+  [
+    '¿DITEON trabaja solo con empresas grandes?',
+    'No. El criterio principal es que exista un proceso real que valga la pena ordenar, conectar o automatizar. El alcance se adapta a la etapa del negocio.',
+  ],
+  [
+    '¿Puedo empezar por un módulo pequeño?',
+    'Sí. Podemos comenzar por el punto de mayor impacto y planificar las siguientes fases. Acordamos qué incluye cada entrega y cómo se conectará con el resto del sistema.',
+  ],
+  [
+    '¿Cómo se define la propiedad del software?',
+    'La propiedad del código, la documentación y los entregables se acuerda desde el inicio y queda expresada en el alcance contractual antes de comenzar el desarrollo.',
+  ],
+  [
+    '¿Pueden integrar mis herramientas actuales?',
+    'Revisamos la disponibilidad de APIs, permisos y requisitos de tus herramientas. Con esa información definimos qué conexiones son viables y cómo manejar errores o interrupciones.',
+  ],
+  [
+    '¿Cuánto cuesta y cuánto tarda un proyecto?',
+    'Depende del alcance, los usuarios y las integraciones. Primero entendemos tu necesidad; después proponemos fases, entregables y una estimación para que puedas decidir con contexto.',
+  ],
+  [
+    '¿Qué pasa después del lanzamiento?',
+    'Definimos contigo el soporte, monitoreo y evolución que necesita el proyecto. Las condiciones de acompañamiento se acuerdan antes de publicar.',
+  ],
 ]
-
-export function FaqCta({onContact}:{onContact:(solution?:SolutionOptionValue)=>void}){
-  const [open,setOpen]=useState(0)
-  const buttons=useRef<Array<HTMLButtonElement|null>>([])
-
-  const onKey=(e:KeyboardEvent<HTMLButtonElement>,i:number)=>{
-    if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return
-    e.preventDefault()
-    let next=i
-    if(e.key==='ArrowDown')next=(i+1)%faqs.length
-    if(e.key==='ArrowUp')next=(i-1+faqs.length)%faqs.length
-    if(e.key==='Home')next=0
-    if(e.key==='End')next=faqs.length-1
-    buttons.current[next]?.focus()
+export function FaqCta({ onContact }: { onContact: ContactHandler }) {
+  const [open, setOpen] = useState(0)
+  const refs = useRef<Array<HTMLButtonElement | null>>([])
+  function navigate(event: KeyboardEvent, index: number) {
+    const next =
+      event.key === 'ArrowDown'
+        ? (index + 1) % faqs.length
+        : event.key === 'ArrowUp'
+          ? (index - 1 + faqs.length) % faqs.length
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? faqs.length - 1
+              : -1
+    if (next >= 0) {
+      event.preventDefault()
+      refs.current[next]?.focus()
+    }
   }
-
   return (
     <>
-      <section className="faq" id="faq">
+      <section className="section faq" id="faq">
         <div className="shell faq__layout">
           <div>
-            <span className="section-kicker">07 · Preguntas frecuentes</span>
-            <h2>Lo importante antes de <em>empezar.</em></h2>
-            <p className="faq__intro">Acordamos alcance, propiedad, integraciones y forma de trabajo antes de construir.</p>
+            <span className="eyebrow">06 / Antes de empezar</span>
+            <h2>
+              Preguntas claras.
+              <br />
+              <em>Respuestas también.</em>
+            </h2>
+            <p>Construir un sistema comienza con una buena conversación.</p>
           </div>
           <div className="faq__items">
-            {faqs.map(([q,a],i)=>{
-              const isOpen=open===i
-              return (
-                <article key={q} className={isOpen?'open':''}>
-                  <button ref={el=>{buttons.current[i]=el}} onKeyDown={e=>onKey(e,i)} onClick={()=>{setOpen(isOpen?-1:i);if(!isOpen)trackEvent('faq_opened',{question:q})}} aria-expanded={isOpen} aria-controls={`faq-panel-${i}`} id={`faq-trigger-${i}`}>
-                    <span>{q}</span><Plus size={18}/>
+            {faqs.map(([question, answer], index) => (
+              <article
+                key={question}
+                className={open === index ? 'is-active' : ''}
+              >
+                <h3>
+                  <button
+                    ref={(el) => {
+                      refs.current[index] = el
+                    }}
+                    onKeyDown={(event) => navigate(event, index)}
+                    aria-expanded={open === index}
+                    aria-controls={`faq-panel-${index}`}
+                    id={`faq-trigger-${index}`}
+                    onClick={() => {
+                      setOpen(open === index ? -1 : index)
+                      if (open !== index) trackEvent('faq_opened', { question })
+                    }}
+                  >
+                    {question}
+                    <Plus size={19} />
                   </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen&&<motion.div id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-trigger-${i}`} className="faq-answer" initial={{height:0,opacity:0}} animate={{height:'auto',opacity:1}} exit={{height:0,opacity:0}} transition={{duration:.28,ease:[.16,1,.3,1]}}><p>{a}</p></motion.div>}
-                  </AnimatePresence>
-                </article>
-              )
-            })}
+                </h3>
+                <div
+                  id={`faq-panel-${index}`}
+                  role="region"
+                  aria-labelledby={`faq-trigger-${index}`}
+                  hidden={open !== index}
+                >
+                  <p>{answer}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
-      <section className="final-cta">
-        <BackgroundPaths/>
-        <div className="final-cta__glow" aria-hidden="true"/>
-        <div className="shell final-cta__content">
-          <span>Tu próxima operación puede ser más simple.</span>
-          <h2>Construyamos el sistema que tu negocio <em>realmente necesita.</em></h2>
-          <p>Cuéntanos cómo trabajas hoy y dónde se está perdiendo tiempo, control o información.</p>
-          <button className="button button--bone button--large" onClick={() => onContact('otro')}>Hablar con DITEON <ArrowRight size={18}/></button>
+      <section className="final-cta" id="contacto">
+        <div className="shell">
+          <span className="eyebrow">Hagamos espacio para lo que sigue</span>
+          <h2>
+            Menos fricción.
+            <br />
+            <em>Más posibilidades.</em>
+          </h2>
+          <p>
+            Cuéntanos qué está frenando tu operación.
+            <br />
+            Podemos empezar por ahí.
+          </p>
+          <button className="button button--bone" onClick={() => onContact()}>
+            Hablemos de tu proyecto <ArrowUpRight size={19} />
+          </button>
+          <span className="final-cta__note">
+            Una conversación para entender tu necesidad.
+          </span>
         </div>
+        <span className="final-cta__orbit" aria-hidden="true" />
       </section>
     </>
   )

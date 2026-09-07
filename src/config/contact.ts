@@ -1,6 +1,9 @@
+import { isValidEmail, isValidPhone } from '../services/contactValidation'
+import { isValidEndpoint } from '../services/contactTransport'
+
 /**
  * Centralized Contact and Channels Configuration for DITEON
- * 
+ *
  * Rules & Security Standards:
  * - Reads public environment variables with VITE_ prefix.
  * - Under NO circumstance does this or any client file store private API keys, tokens, or service role secrets.
@@ -10,118 +13,142 @@
  */
 
 export interface ContactChannelItem {
-  id: 'whatsapp' | 'email' | 'call' | 'linkedin' | 'instagram' | 'calendly';
-  label: string;
-  category: 'primary' | 'fast' | 'formal' | 'direct' | 'professional' | 'social' | 'meeting';
-  available: boolean;
-  href: string;
-  displayValue?: string;
-  isExternal: boolean;
-  iconBrand?: 'whatsapp' | 'linkedin' | 'instagram' | 'github';
-  systemIcon?: string;
+  id: 'whatsapp' | 'email' | 'call' | 'linkedin' | 'instagram' | 'calendly'
+  label: string
+  category:
+    | 'primary'
+    | 'fast'
+    | 'formal'
+    | 'direct'
+    | 'professional'
+    | 'social'
+    | 'meeting'
+  available: boolean
+  href: string
+  displayValue?: string
+  isExternal: boolean
+  iconBrand?: 'whatsapp' | 'linkedin' | 'instagram' | 'github'
+  systemIcon?: string
 }
 
 export interface ContactConfig {
-  apiUrl?: string;
-  hasApiConfigured: boolean;
+  apiUrl?: string
+  hasApiConfigured: boolean
   whatsapp: {
-    number?: string;
-    cleanNumber?: string;
-    isConfigured: boolean;
-    getLink: (message?: string) => string;
-  };
+    number?: string
+    cleanNumber?: string
+    isConfigured: boolean
+    getLink: (message?: string) => string
+  }
   email: {
-    address?: string;
-    href: string;
-    isConfigured: boolean;
-  };
+    address?: string
+    href: string
+    isConfigured: boolean
+  }
   phone: {
-    raw?: string;
-    clean?: string;
-    href: string;
-    isConfigured: boolean;
-  };
+    raw?: string
+    clean?: string
+    href: string
+    isConfigured: boolean
+  }
   linkedin: {
-    url?: string;
-    isConfigured: boolean;
-  };
+    url?: string
+    isConfigured: boolean
+  }
   instagram: {
-    url?: string;
-    isConfigured: boolean;
-  };
+    url?: string
+    isConfigured: boolean
+  }
   calendly: {
-    url?: string;
-    isConfigured: boolean;
-  };
+    url?: string
+    isConfigured: boolean
+  }
 }
 
 // 1. Raw Environment Variables
-const rawApiUrl = import.meta.env.VITE_CONTACT_API_URL?.trim();
-const rawWaNumber = import.meta.env.VITE_WHATSAPP_NUMBER?.trim();
-const rawEmail = import.meta.env.VITE_CONTACT_EMAIL?.trim();
-const rawPhone = import.meta.env.VITE_CONTACT_PHONE?.trim();
-const rawLinkedin = import.meta.env.VITE_LINKEDIN_URL?.trim();
-const rawInstagram = import.meta.env.VITE_INSTAGRAM_URL?.trim();
-const rawCalendly = import.meta.env.VITE_CALENDLY_URL?.trim();
+const rawApiUrl = import.meta.env.VITE_CAPTURE_LEAD_FUNCTION_URL?.trim()
+const rawWaNumber = import.meta.env.VITE_WHATSAPP_NUMBER?.trim()
+const rawEmail = import.meta.env.VITE_CONTACT_EMAIL?.trim()
+const rawPhone = import.meta.env.VITE_CONTACT_PHONE?.trim()
+const rawLinkedin = import.meta.env.VITE_LINKEDIN_URL?.trim()
+const rawInstagram = import.meta.env.VITE_INSTAGRAM_URL?.trim()
+const rawCalendly = import.meta.env.VITE_CALENDLY_URL?.trim()
 
 // 2. Normalization Helpers
-const cleanDigitsOnly = (val?: string) => (val ? val.replace(/\D/g, '') : '');
-const cleanPhoneTel = (val?: string) => (val ? val.replace(/[^\d+]/g, '') : '');
+const cleanDigitsOnly = (val?: string) => (val ? val.replace(/\D/g, '') : '')
+const cleanPhoneTel = (val?: string) => (val ? val.replace(/[^\d+]/g, '') : '')
+const validWebUrl = (value?: string) => {
+  try {
+    const url = new URL(value ?? '')
+    return url.protocol === 'https:' && !url.username && !url.password
+  } catch {
+    return false
+  }
+}
 
 // 3. WhatsApp Link Builder
-const defaultWhatsAppMessage = 'Hola DITEON, me gustaría recibir asesoría sobre software a medida para mi negocio.';
+const defaultWhatsAppMessage =
+  'Hola DITEON, me gustaría recibir asesoría sobre software a medida para mi negocio.'
 
-export const buildWhatsAppUrl = (number?: string, customMessage?: string): string => {
-  const msg = encodeURIComponent(customMessage || defaultWhatsAppMessage);
-  const clean = cleanDigitsOnly(number);
-  if (clean) {
-    return `https://wa.me/${clean}?text=${msg}`;
+export const buildWhatsAppUrl = (
+  number?: string,
+  customMessage?: string,
+): string => {
+  const msg = encodeURIComponent(customMessage || defaultWhatsAppMessage)
+  const clean = cleanDigitsOnly(number)
+  if (number && isValidPhone(number)) {
+    return `https://wa.me/${clean}?text=${msg}`
   }
-  return `https://wa.me/?text=${msg}`;
-};
+  return ''
+}
 
 // 4. Centralized Immutable Configuration
 export const contactConfig: ContactConfig = {
   apiUrl: rawApiUrl || undefined,
-  hasApiConfigured: Boolean(rawApiUrl && rawApiUrl.startsWith('http')),
+  hasApiConfigured: Boolean(rawApiUrl && isValidEndpoint(rawApiUrl)),
   whatsapp: {
     number: rawWaNumber || undefined,
     cleanNumber: cleanDigitsOnly(rawWaNumber) || undefined,
-    isConfigured: Boolean(rawWaNumber && rawWaNumber.length >= 6),
-    getLink: (customMessage?: string) => buildWhatsAppUrl(rawWaNumber, customMessage),
+    isConfigured: Boolean(rawWaNumber && isValidPhone(rawWaNumber)),
+    getLink: (customMessage?: string) =>
+      buildWhatsAppUrl(rawWaNumber, customMessage),
   },
   email: {
-    address: Boolean(rawEmail && rawEmail.includes('@')) ? rawEmail : undefined,
-    href: Boolean(rawEmail && rawEmail.includes('@'))
+    address: Boolean(rawEmail && isValidEmail(rawEmail)) ? rawEmail : undefined,
+    href: Boolean(rawEmail && isValidEmail(rawEmail))
       ? `mailto:${rawEmail}?subject=${encodeURIComponent('Consulta DITEON - Software a medida')}`
       : '',
-    isConfigured: Boolean(rawEmail && rawEmail.includes('@')),
+    isConfigured: Boolean(rawEmail && isValidEmail(rawEmail)),
   },
   phone: {
     raw: rawPhone || undefined,
     clean: cleanPhoneTel(rawPhone) || undefined,
-    href: Boolean(rawPhone && rawPhone.length >= 5) ? `tel:${cleanPhoneTel(rawPhone)}` : '',
-    isConfigured: Boolean(rawPhone && rawPhone.length >= 5),
+    href: Boolean(rawPhone && isValidPhone(rawPhone))
+      ? `tel:${cleanPhoneTel(rawPhone)}`
+      : '',
+    isConfigured: Boolean(rawPhone && isValidPhone(rawPhone)),
   },
   linkedin: {
-    url: Boolean(rawLinkedin && rawLinkedin.startsWith('http')) ? rawLinkedin : undefined,
-    isConfigured: Boolean(rawLinkedin && rawLinkedin.startsWith('http')),
+    url: validWebUrl(rawLinkedin) ? rawLinkedin : undefined,
+    isConfigured: validWebUrl(rawLinkedin),
   },
   instagram: {
-    url: Boolean(rawInstagram && rawInstagram.startsWith('http')) ? rawInstagram : undefined,
-    isConfigured: Boolean(rawInstagram && rawInstagram.startsWith('http')),
+    url: validWebUrl(rawInstagram) ? rawInstagram : undefined,
+    isConfigured: validWebUrl(rawInstagram),
   },
   calendly: {
-    url: Boolean(rawCalendly && rawCalendly.startsWith('http')) ? rawCalendly : undefined,
-    isConfigured: Boolean(rawCalendly && rawCalendly.startsWith('http')),
+    url: validWebUrl(rawCalendly) ? rawCalendly : undefined,
+    isConfigured: validWebUrl(rawCalendly),
   },
-};
+}
 
 /**
  * Returns strictly available, verified communication channels with their UI metadata.
  * Can be filtered or rendered conditionally without dead links or href="#".
  */
-export function getAvailableContactChannels(customMessage?: string): ContactChannelItem[] {
+export function getAvailableContactChannels(
+  customMessage?: string,
+): ContactChannelItem[] {
   const list: ContactChannelItem[] = [
     {
       id: 'whatsapp',
@@ -183,7 +210,7 @@ export function getAvailableContactChannels(customMessage?: string): ContactChan
       isExternal: true,
       systemIcon: 'calendar_month',
     },
-  ];
+  ]
 
-  return list.filter((ch) => ch.available && Boolean(ch.href));
+  return list.filter((ch) => ch.available && Boolean(ch.href))
 }
