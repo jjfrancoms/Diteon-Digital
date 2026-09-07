@@ -1,267 +1,88 @@
-import React, { useEffect, useState } from 'react';
-import { trackEvent } from '../services/analytics';
-import { SolutionOptionValue } from './ContactModal';
-import { Button } from './ui/Button';
-import { TextLink } from './ui/TextLink';
-import { Reveal } from './ui/Reveal';
+import { PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react'
+import { motion, useInView, useMotionValue, useReducedMotion, useSpring } from 'framer-motion'
+import { ArrowRight, Check, MessageSquareText, Database, Boxes, Sparkles } from 'lucide-react'
+import type { SolutionOptionValue } from '../config/solutionOptions'
+import { trackEvent } from '../services/analytics'
 
-interface HeroProps {
-  onScrollTo: (id: string) => void;
-  onOpenContact: (solution?: SolutionOptionValue) => void;
-}
+const productSlides = [
+  { id:'crm', label:'CRM / Control', src:'/images/showcase/diteon-crm-showcase.webp', alt:'Panel CRM DITEON' },
+  { id:'pos', label:'POS / Inventario', src:'/images/showcase/diteon-pos-showcase.webp', alt:'Panel POS DITEON' },
+]
 
-const SHOWCASE_INTERVAL_MS = 5000;
+export function Hero({ onContact }: { onContact: (solution?: SolutionOptionValue) => void }) {
+  const reduced = useReducedMotion()
+  const [slide, setSlide] = useState(0)
+  const heroRef = useRef<HTMLElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(heroRef,{amount:.12,margin:'-8% 0px -8% 0px'})
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const rotateY = useSpring(mx, { stiffness: 90, damping: 18 })
+  const rotateX = useSpring(my, { stiffness: 90, damping: 18 })
 
-const showcaseProjects = [
-  {
-    src: '/images/showcase/diteon-pos-showcase.webp',
-    alt: 'Interfaz del sistema POS desarrollado por DITEON',
-  },
-  {
-    src: '/images/showcase/diteon-crm-showcase.webp',
-    alt: 'Interfaz del sistema CRM desarrollado por DITEON',
-  },
-] as const;
-
-export const Hero: React.FC<HeroProps> = ({
-  onScrollTo,
-  onOpenContact,
-}) => {
-  const [activeShowcase, setActiveShowcase] = useState(0);
-
-  /*
-   * Precarga todas las imágenes para evitar flashes
-   * durante el cambio de proyecto.
-   */
   useEffect(() => {
-    showcaseProjects.forEach((project) => {
-      const image = new Image();
-      image.src = project.src;
-    });
-  }, []);
+    if (reduced || !inView) return
+    const id = window.setInterval(()=>setSlide(s=>(s+1)%productSlides.length), 5600)
+    return () => clearInterval(id)
+  }, [reduced,inView])
 
-  /*
-   * Cambio automático:
-   *
-   * POS
-   * ↓
-   * CRM
-   * ↓
-   * POS
-   *
-   * Sin controles visibles.
-   */
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setActiveShowcase((current) => {
-        return (current + 1) % showcaseProjects.length;
-      });
-    }, SHOWCASE_INTERVAL_MS);
+  function pointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (reduced || !stageRef.current) return
+    const r = stageRef.current.getBoundingClientRect()
+    mx.set(((e.clientX-r.left)/r.width-.5)*4.5)
+    my.set(-((e.clientY-r.top)/r.height-.5)*3.5)
+    stageRef.current.style.setProperty('--mx', `${e.clientX-r.left}px`)
+    stageRef.current.style.setProperty('--my', `${e.clientY-r.top}px`)
+  }
 
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  const handlePrimaryClick = () => {
-    trackEvent('hero_cta_click', {
-      source: 'hero_primary_button',
-    });
-
-    trackEvent('hero_contact_click', {
-      source: 'hero_primary_button',
-    });
-
-    onOpenContact('otro');
-  };
-
-  const handleSecondaryClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    onScrollTo('soluciones');
-  };
-
-  const activeProject = showcaseProjects[activeShowcase];
+  function pointerLeave(){
+    mx.set(0)
+    my.set(0)
+  }
 
   return (
-    <section
-      id="hero"
-      className="
-        relative
-        overflow-hidden
-        border-b
-        border-[#14142B]/8
-        bg-[#F7F7F5]
-        pt-24
-        pb-16
-        sm:pt-28
-        sm:pb-16
-        lg:pt-32
-        lg:pb-24
-      "
-    >
-      <div className="page-shell">
-        <div
-          className="
-            grid
-            grid-cols-1
-            items-center
-            gap-12
-            lg:grid-cols-12
-            lg:gap-10
-            xl:gap-14
-          "
-        >
-          {/* =========================================================
-              LEFT — VALUE PROPOSITION
-          ========================================================= */}
+    <section className="hero" id="inicio" ref={heroRef}>
+      <div className="hero__aurora" aria-hidden="true"/>
+      <div className="hero__grid" aria-hidden="true"/>
+      <div className="shell hero__inner">
+        <motion.div className="hero__copy" initial={reduced?false:{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:.7,ease:[.16,1,.3,1]}}>
+          <div className="announcement"><Sparkles size={13}/><span>Software operativo diseñado alrededor de tu negocio</span><i/>Arquitectura a medida</div>
+          <div className="eyebrow"><span className="eyebrow__line"/> Ingeniería de software para negocios reales</div>
+          <h1>De procesos dispersos a <span className="hero-gradient">una operación conectada.</span></h1>
+          <p className="hero__lead">CRM, POS, ERP, automatización e integraciones diseñados alrededor de cómo funciona tu negocio — no alrededor de una plantilla.</p>
+          <div className="hero__actions">
+            <button className="button button--primary button--large" onClick={() => { trackEvent('hero_contact_click'); onContact('otro') }}>Cuéntanos tu proyecto <ArrowRight size={18}/></button>
+            <a className="text-link" href="#producto">Ver producto <span>↓</span></a>
+          </div>
+          <div className="hero__trustline">
+            <span><Check size={15}/> Propiedad definida desde el inicio</span>
+            <span><Check size={15}/> Modular y escalable</span>
+            <span><Check size={15}/> Integraciones reales</span>
+          </div>
+        </motion.div>
 
-          <div className="text-left lg:col-span-5">
-            <div className="max-w-[610px]">
-
-              <Reveal direction="up" delay={0}>
-                <h1
-                  className="
-                    font-['Space_Grotesk']
-                    text-3xl
-                    font-extrabold
-                    leading-[1.07]
-                    tracking-tight
-                    text-[#14142B]
-                    sm:text-4xl
-                    md:text-5xl
-                    lg:text-[52px]
-                    xl:text-[56px]
-                  "
-                >
-                  Software a medida para ordenar, controlar y escalar tu
-                  negocio.
-                </h1>
-              </Reveal>
-
-              <Reveal direction="up" delay={70}>
-                <p
-                  className="
-                    mt-7
-                    max-w-[560px]
-                    font-['Inter']
-                    text-sm
-                    leading-relaxed
-                    text-[#14142B]/75
-                    sm:text-base
-                    lg:text-lg
-                  "
-                >
-                  Diseñamos sistemas, automatizaciones y dashboards que
-                  conectan tus procesos operativos para tomar mejores
-                  decisiones y crecer con orden.
-                </p>
-              </Reveal>
-
-              <Reveal direction="up" delay={170}>
-                <div
-                  className="
-                    mt-8
-                    flex
-                    flex-col
-                    items-stretch
-                    gap-4
-                    sm:flex-row
-                    sm:items-center
-                  "
-                >
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handlePrimaryClick}
-                    iconRight={
-                      <span className="material-symbols-outlined text-[18px]">
-                        arrow_forward
-                      </span>
-                    }
-                  >
-                    Hablemos de tu proyecto
-                  </Button>
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      justify-center
-                      px-2
-                      sm:justify-start
-                    "
-                  >
-                    <TextLink
-                      href="#soluciones"
-                      onClick={handleSecondaryClick}
-                      variant="cta"
-                    >
-                      Ver cómo funciona
-                    </TextLink>
-                  </div>
-                </div>
-              </Reveal>
-
+        <motion.div ref={stageRef} className="product-stage product-stage--interactive" onPointerMove={pointerMove} onPointerLeave={pointerLeave} style={reduced?undefined:{rotateX,rotateY}} initial={reduced?false:{opacity:0,y:32,scale:.96}} animate={{opacity:1,y:0,scale:1}} transition={{duration:.9,delay:.12,ease:[.16,1,.3,1]}}>
+          <div className="product-stage__cursor-glow" aria-hidden="true"/>
+          <div className="product-stage__halo" aria-hidden="true"/>
+          <div className="product-window">
+            <div className="product-window__bar">
+              <div className="traffic"><i/><i/><i/></div>
+              <span>DITEON / producto demo</span>
+              <span className="window-badge">DEMO</span>
+            </div>
+            <div className="product-tabs" role="tablist" aria-label="Demos de producto">
+              {productSlides.map((item,i)=><button key={item.id} role="tab" aria-selected={slide===i} className={slide===i?'active':''} onClick={()=>setSlide(i)}>{item.label}</button>)}
+            </div>
+            <div className="product-media">
+              {productSlides.map((item,i)=><motion.img key={item.id} src={item.src} alt={item.alt} animate={{opacity:slide===i?1:0,scale:slide===i?1:.985}} transition={{duration:.45,ease:[.16,1,.3,1]}} aria-hidden={slide!==i}/>) }
             </div>
           </div>
-
-          {/* =========================================================
-              RIGHT — AUTOMATIC PROJECT SHOWCASE
-          ========================================================= */}
-
-          <div
-            className="
-              relative
-              lg:col-span-7
-              lg:-mr-10
-              xl:-mr-16
-            "
-          >
-            <Reveal direction="right" delay={220}>
-              <div
-                className="
-                  relative
-                  mx-auto
-                  w-full
-                  max-w-3xl
-                  lg:max-w-none
-                  lg:translate-y-3
-                "
-              >
-                <div
-                  className="
-                    relative
-                    w-full
-                    overflow-hidden
-                  "
-                >
-                  <img
-                    key={activeProject.src}
-                    src={activeProject.src}
-                    alt={activeProject.alt}
-                    className="
-                      hero-showcase-transition
-                      block
-                      h-auto
-                      w-full
-                      select-none
-                      object-contain
-                      drop-shadow-[0_30px_30px_rgba(20,20,43,0.16)]
-                    "
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                    width={1200}
-                    height={750}
-                    draggable={false}
-                  />
-                </div>
-              </div>
-            </Reveal>
-          </div>
-
-        </div>
+          <motion.div className="floating-note floating-note--one" animate={reduced?undefined:{y:inView?[0,-4,0]:0}} transition={{repeat:Infinity,duration:4.8,ease:'easeInOut'}}><MessageSquareText size={15}/><div><strong>Lead conectado</strong><span>WhatsApp → CRM</span></div></motion.div>
+          <motion.div className="floating-note floating-note--two" animate={reduced?undefined:{y:inView?[0,4,0]:0}} transition={{repeat:Infinity,duration:5.6,ease:'easeInOut'}}><Database size={14}/><div><strong>Datos sincronizados</strong><span>Realtime</span></div></motion.div>
+          <motion.div className="floating-note floating-note--three" animate={reduced?undefined:{x:inView?[0,3,0]:0,y:inView?[0,-2,0]:0}} transition={{repeat:Infinity,duration:6.4,ease:'easeInOut'}}><Boxes size={14}/><div><strong>Stock y caja</strong><span>Misma operación</span></div></motion.div>
+        </motion.div>
       </div>
+      <div className="hero__foot shell"><span>Software a medida</span><span>Automatización</span><span>Integraciones</span><span>Producto digital</span></div>
     </section>
-  );
-};
+  )
+}
