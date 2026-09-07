@@ -7,10 +7,10 @@ import {
   MessageSquare,
   UserRound,
   BarChart3,
-  Box,
 } from 'lucide-react'
 import { Tabs } from './ui/Tabs'
 import { Modal } from './ui/Modal'
+import { ModuleGallery } from './ModuleGallery'
 import type { ContactHandler } from '../config/experience'
 import { trackEvent } from '../services/analytics'
 
@@ -307,72 +307,5 @@ export function ProjectsScroll({ onContact }: { onContact: ContactHandler }) {
         </Modal>
       </div>
     </section>
-  )
-}
-
-function ModuleGallery() {
-  const [active, setActive] = useState('ventas')
-  const modules = [
-    {
-      id: 'ventas',
-      label: 'Ventas',
-      icon: UserRound,
-      image: 'crm',
-      title: 'Cada cliente, con su contexto.',
-      text: 'Etapas, responsables y próximas tareas en una vista comercial.',
-    },
-    {
-      id: 'inventario',
-      label: 'Inventario',
-      icon: Box,
-      image: 'inventory',
-      title: 'Movimientos que puedes seguir.',
-      text: 'Existencias, alertas y movimientos organizados por producto.',
-    },
-    {
-      id: 'seguimiento',
-      label: 'Automatización',
-      icon: MessageSquare,
-      image: 'automation',
-      title: 'El siguiente paso no se olvida.',
-      text: 'Reglas, avisos y tareas conectados con los eventos de tu operación.',
-    },
-    {
-      id: 'reportes',
-      label: 'Reportes',
-      icon: BarChart3,
-      image: 'erp',
-      title: 'Una vista para tomar decisiones.',
-      text: 'Información de diferentes áreas reunida en un panel de gestión.',
-    },
-  ]
-  return (
-    <Tabs
-      label="Módulos disponibles en la galería"
-      activeId={active}
-      onChange={setActive}
-      className="module-gallery"
-      tabs={modules.map((module) => ({
-        id: module.id,
-        label: module.label,
-        content: (
-          <div className="module-gallery__panel">
-            <div>
-              <module.icon size={26} />
-              <h3>{module.title}</h3>
-              <p>{module.text}</p>
-              <span className="demo-tag">Concepto de interfaz</span>
-            </div>
-            <img
-              src={`/demos/${module.image}.svg`}
-              width="1000"
-              height="620"
-              alt={`Vista de ejemplo: ${module.label}`}
-              loading="lazy"
-            />
-          </div>
-        ),
-      }))}
-    />
   )
 }
