@@ -21,6 +21,8 @@ npm run build         # Producción en dist/, robots y SEO según el origen conf
 
 ## Experiencia
 
+Identidad tipográfica: General Sans para títulos, Inter para cuerpo e IBM Plex Mono para etiquetas. Los SVG de tecnologías se conservan; el marquee usa `transform` CSS y ofrece desplazamiento nativo en móvil/táctil y con movimiento reducido. La galería muestra cuatro módulos en una cuadrícula uniforme dentro del tab existente. Ingeniería y el cierre incorporan un fondo radial CSS sutil; el óvalo del cierre conserva su composición.
+
 - Hero con una interfaz ilustrativa y propuesta centrada en la operación del negocio.
 - Selector de necesidades: ventas, inventario, automatización y plataforma a medida.
 - Comparación del mismo proceso antes y después de conectarlo.
