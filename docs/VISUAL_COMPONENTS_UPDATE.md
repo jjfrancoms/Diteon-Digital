@@ -3,7 +3,7 @@
 ## Cambios
 
 - `TechMarquee.tsx`: los seis SVG existentes aparecen en dos grupos de geometría idéntica, con traslación CSS lineal de 42 segundos. La copia está oculta para lectores de pantalla. Pausa por hover, foco y botón. Móvil/táctil y movimiento reducido muestran una única lista con desplazamiento horizontal nativo. Sin sombras, glow o 3D en los logos.
-- `ModuleGallery.tsx`: cuadrícula uniforme de cuatro tarjetas dentro de «Galería de módulos», junto a «Recorrido guiado». CRM y ventas, POS e inventario, ERP y operaciones y Automatización de procesos. Cada tarjeta tiene un ícono Lucide, descripción y estado marcado como ilustrativo. No añade rutas, screenshots, logos ni datos de clientes.
+- `ModuleGallery.tsx`: cuadrícula uniforme de cuatro tarjetas dentro de «Galería de módulos», junto a «Recorrido guiado». Usa directamente `needs` de `src/config/experience.ts`: Organizar ventas, Controlar inventario, Automatizar tareas y Crear una plataforma. Títulos, descripciones y estados proceden de `label`, `description` y `benefits[0]`, sin duplicar textos. Los íconos Lucide y los acentos blue/coral/violet/navy se asignan por `need.id`; los fondos, bordes y tonos de texto derivan de los tokens de marca. Conserva «Datos de ejemplo», «Estado ilustrativo» y el layout existente. No añade rutas, screenshots, logos ni datos de clientes.
 - `landing.css`: dos gradientes radiales morado/azul detrás de Ingeniería y el cierre. Respiración por opacidad de 28 segundos en escritorio, sin WebGL. Fondo estático en móvil o con movimiento reducido. Se conserva el óvalo original.
 - Tipografía: General Sans para títulos, Inter para cuerpo e IBM Plex Mono para etiquetas, mediante tokens comunes y hojas de fuentes oficiales. Los componentes nuevos usan Lucide.
 
@@ -19,7 +19,7 @@ Los patrones se adaptaron a los componentes y estilos del proyecto, sin copiar i
 
 ## Validación visual pendiente
 
-La vista previa arranca, pero el navegador de revisión bloquea su acceso con `ERR_BLOCKED_BY_CLIENT`. No se ejecutaron pruebas visuales en dos anchos y no se declara completado ese requisito. Esta rama queda pendiente de revisión visual antes de integrarse a `main`.
+En la entrega inicial, la vista previa arrancó, pero el navegador de revisión bloqueó su acceso con `ERR_BLOCKED_BY_CLIENT`. No se ejecutaron pruebas visuales en dos anchos y no se declara completado ese requisito. El PR #1 se integró posteriormente a `main`; esa integración no constituye evidencia de revisión visual.
 
 Comprobar en **390 px y 1440 px**:
 
